@@ -12,31 +12,14 @@
  *  Format fichier .txt : ID, List of links,
  */
 
-int movePtrToNextNumericChara(const char * txt, const char * lastTxt)
-{
-    while(*txt == ' ' && lastTxt != txt)
-        txt++;
-    if lastTxt ==
-}
 
-int extractValue(const char * txt, const char * lastTxt, char separator)
-{
 
-}
+void skipSpace(const char * txt, const char * lastTxt);
+int extractValue(const char * txt, char separator, const char * lastTxt);
+std::vector<int> extractListValue(const char * txt,  char separator, const char * lastTxt);
 
-int extractFirstInBeforeSepOrSpace(const char * txt, const char * lastTxt, char separator)
-{
-    std::string numberTxt;
-    int number;
-    while(*txt != separator && *txt != ' ')
-    {
-        numberTxt += *txt;
-        if(txt == lastTxt)
-            break;
-    }
-    number = std::stoi(numberTxt);
-    return number;
-}
+
+
 
 PathFinding::PathFinding(const char* path)
 {
@@ -55,8 +38,41 @@ PathFinding::PathFinding(const char* path)
     {
         Node node;
         char * lastChr = &line[line.size() -1];
-        node.id = extractFirstInBeforeSep();
-
-        node.id = extractFirstInBeforeSepOrSpace(line, lastChr, ',');
+        char * ptrLine = &line[0];
+        node.id = extractValue(ptrLine, ',', lastChr);
+        node.specialAttribut = extractValue(ptrLine + 1, ',', lastChr);
+        node.links = extractListValue(ptrLine + 1, ',', lastChr);
+        graph.push_back(node);
     }
+}
+
+
+
+std::vector<int> extractListValue(const char * txt,  char separator, const char * lastTxt)
+{
+    std::vector<int> result;
+    while(*txt != separator)
+    {
+        skipSpace(txt, lastTxt);
+        result.push_back(extractValue(txt, separator, lastTxt));
+    }
+    return result;
+}
+
+void skipSpace(const char * txt, const char * lastTxt)
+{
+    while(txt != lastTxt && *txt == ' ')
+        txt++;
+}
+
+int extractValue(const char * txt, char separator, const char * lastTxt) {
+    std::string numberString;
+    int number;
+    while (txt != lastTxt && *txt != ' ' && *txt != separator)
+    {
+        numberString += *txt;
+        txt++;
+    }
+    number = std::stoi(numberString);
+    return number;
 }

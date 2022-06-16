@@ -9,6 +9,7 @@
 struct Node
 {
     int id;
+    int specialAttribut;
     std::vector<int> links;
 };
 
