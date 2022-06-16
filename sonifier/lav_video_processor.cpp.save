@@ -1,0 +1,551 @@
+
+#include "lav_video_processor.h"
+
+//cv::Size size(320, 240);//SHORT_RANGE
+cv::Size size(160, 120);//LONG_RANGE
+
+#ifdef DEPTH_VIDEOPROCESSING
+cv::Mat lavVideoProcessor::currentGoodPixelsMask = cv::Mat(size, CV_8UC1);
+cv::Mat lavVideoProcessor::previousGoodPixelsMask = cv::Mat(size, CV_8UC1);
+cv::Mat lavVideoProcessor::currentAndPreviousGoodPixelsMask = cv::Mat(size, CV_8UC1);
+cv::Mat lavVideoProcessor::newGoodPixelsMask = cv::Mat(size, CV_8UC1);
+cv::Mat lavVideoProcessor::depthProximityAlarmMask = cv::Mat(size, CV_8UC1);
+cv::Mat lavVideoProcessor::frameDifferencing = cv::Mat(size, CV_8UC1);
+cv::Mat lavVideoProcessor::frameDifferencingMask = cv::Mat(size, CV_8UC1);
+cv::Mat lavVideoProcessor::selectedFrameDifferencing = cv::Mat(size, CV_8UC1);
+cv::Mat lavVideoProcessor::finalMaskDepth = cv::Mat(size, CV_8UC1);
+#endif
+
+cv::VideoWriter* lavVideoProcessor::_pVideoWriter = new  cv::VideoWriter("recording.avi", CV_FOURCC('M', 'J', 'P', 'G'), 25, size, true);
+
+
+unsigned int lavVideoProcessor::_cptVideoFrame = 0;
+cv::Mat lavVideoProcessor::_inputMat;
+cv::Mat lavVideoProcessor::_tmpMat;
+cv::Mat lavVideoProcessor::_outputMat;
+cv::Mat lavVideoProcessor::_mOutputRGBA;
+cv::Mat lavVideoProcessor::_previousMat;
+cv::Mat lavVideoProcessor::_outputMatForDisplay;
+
+cv::Mat lavVideoProcessor::_colorFrameForVideoRecording = cv::Mat(size, CV_8UC3);
+
+//lavVideoCapture* lavVideoProcessor::_capture =  new lavOpencvVideoFile("/home/maxime/data/boulot/recherche/lead/development/C++/sonifier/src/res/01_01_near.avi", 25);    
+//lavVideoCapture* lavVideoProcessor::_capture =  new lavOpencvVideoFile("/home/maxime/data/boulot/recherche/lead/development/C++/sonifier/sonifier/res/stimuli_video/video/approach/01_01_coming.avi", 25);   
+//lavVideoCapture* lavVideoProcessor::_capture =  new lavOpencvVideoFile("/home/maxime/data/boulot/recherche/lead/development/C++/sonifier/sonifier/res/stimuli_video/video_depth/trajectory/09_09_far.avi", 25);   
+
+lavVideoCapture* lavVideoProcessor::_capture =  lavSoftKineticCamera::getSingleton();    
+//lavVideoCapture* lavVideoProcessor::_capture =  new lavOpencvCamera();
+
+
+
+//cv::Ptr<cv::VideoCapture> lavVideoProcessor::_capture;
+
+
+bool lavVideoProcessor::_silence = 0;
+bool lavVideoProcessor::_firstFrame = true;
+int lavVideoProcessor::_nbNonZero = 0;
+int lavVideoProcessor::_close_video = 0;
+
+//pthread_t lavVideoProcessor::thread_video_processing;
+
+
+
+void lavVideoProcessor::init() {
+
+	//for LavCamera
+	//_pCam = new LavCamera(0);
+	//end for LavCamera
+
+
+    /*_outputMat = cv::Mat(160, 120, CV_8UC1);
+    _previousMat = cv::Mat(640, 480, CV_8UC3);
+    _inputMat = cv::Mat(640, 480, CV_8UC3);*/
+
+
+	//for android camera
+	//_capture = new cv::VideoCapture(0);    
+
+    /*while (1) {
+        (*_capture) >> _inputMat;
+
+    }*/
+
+	//_capture->set(CV_CAP_PROP_FRAME_WIDTH, FRAME_WIDTH_SONIFIED);
+	//_capture->set(CV_CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT_SONIFIED);
+
+    //_capture->set(CV_CAP_PROP_CONVERT_RGB, false);
+    //_capture->set(CV_CAP_PROP_MODE, CV_CAP_MODE_YUYV);
+	//end for android camera
+
+	_mOutputRGBA = cv::Mat(FRAME_HEIGHT_SONIFIED, FRAME_WIDTH_SONIFIED, CV_8UC4);    
+
+}
+
+void lavVideoProcessor::release() {
+
+	_close_video = 1;
+
+}
+
+void lavVideoProcessor::startOrStopSound() {
+	if (_silence == false) {
+		_silence = true;
+	}
+	else {
+		_silence = false;
+	}
+}
+
+#ifdef DEPTH_VIDEOPROCESSING
+void lavVideoProcessor::processFrame() {
+
+    /*
+    EXPLICATIONS
+    1) on récupère les pixels qui ont ete valides (>0) dans deux images successives
+    2) on récupère les paquets de pixels qui n'étaient pas valident dans l'image précédente et qui le sont devenus
+    3) on détecte les pixels pour lesquels on a une distance très faible afin de faire une alarme
+    4) on détecte les pixels qui ont changés entre les deux images
+    5) sur pixels qui ont changés entre les deux images, on ne concerve que ceux qui étaient valident dans les deux images. 
+    6) Sur ces pixels on ajoutent ceux de la phase 2 et de la phase 3
+    7) on sélectionne les pixels de la capture de base avec le masque que l'on vient de créer
+    */
+    /*
+    //1
+    cv::threshold(_inputMat, currentGoodPixelsMask, 0, 1, cv::THRESH_BINARY);    
+    cv::multiply(currentGoodPixelsMask, previousGoodPixelsMask, currentAndPreviousGoodPixelsMask);
+    cv::threshold(currentAndPreviousGoodPixelsMask, currentAndPreviousGoodPixelsMask, 0, 255, cv::THRESH_BINARY);
+    //cv::imshow("currentAndPreviousGoodPixelsMask",currentAndPreviousGoodPixelsMask);
+
+
+    //2
+    newGoodPixelsMask = currentGoodPixelsMask-previousGoodPixelsMask;
+    currentGoodPixelsMask.copyTo(previousGoodPixelsMask);
+        //on filtre un peu
+    cv::threshold(newGoodPixelsMask, newGoodPixelsMask, 0, 255, cv::THRESH_BINARY);
+    cv::blur(newGoodPixelsMask, newGoodPixelsMask, cvSize(5, 5));
+    cv::threshold(newGoodPixelsMask, newGoodPixelsMask, 180, 1, cv::THRESH_BINARY);
+    //cv::threshold(newGoodPixelsMask, newGoodPixelsMask, 120, 1, cv::THRESH_BINARY);
+
+    //3
+    //cv::threshold(_inputMat, _inputMat, 0., .0, cv::THRESH_TOZERO);
+    cv::blur(_inputMat, depthProximityAlarm, cvSize(5, 5));
+    cv::threshold(depthProximityAlarm, depthProximityAlarm, 240, 1, cv::THRESH_BINARY);
+      
+    //4    
+    frameDifferencing = _inputMat - _previousMat;
+    //cv::absdiff(_inputMat, previousFloatDepth, frameDifferencing);
+    //cv::blur(frameDifferencing, frameDifferencing, cvSize(5, 5));
+    //cv::threshold(frameDifferencing, frameDifferencingMask, 10, 1, cv::THRESH_BINARY);
+    cv::threshold(frameDifferencing, frameDifferencingMask, 5, 1, cv::THRESH_BINARY);
+
+    //5
+        //on ne conserve que les pixels qui étaient valident dans les deux images
+    cv::multiply(frameDifferencingMask, currentAndPreviousGoodPixelsMask, selectedFrameDifferencing);
+        //on filtre un peu
+    cv::threshold(selectedFrameDifferencing, selectedFrameDifferencing, 0, 255, cv::THRESH_BINARY);
+    cv::blur(selectedFrameDifferencing, selectedFrameDifferencing, cvSize(9, 9));   
+
+    //cv::imshow("selectedFrameDifferencing",selectedFrameDifferencing);
+    cv::threshold(selectedFrameDifferencing, selectedFrameDifferencing, 50, 1, cv::THRESH_BINARY);
+    
+    _inputMat.copyTo(_previousMat);
+
+    //cv::imshow("selectedFrameDifferencing",selectedFrameDifferencing);
+    //cv::imshow("newGoodPixelsMask",newGoodPixelsMask);
+
+    //6
+    finalMaskDepth = selectedFrameDifferencing+newGoodPixelsMask+depthProximityAlarm;
+
+    
+
+    //7
+    cv::multiply(_inputMat, finalMaskDepth, _outputMat);    
+
+    cv::resize(_outputMat, _outputMat, cv::Size(FRAME_WIDTH_SONIFIED, FRAME_HEIGHT_SONIFIED), 0, 0, 1);
+    */
+
+    cv::threshold(_input, _input, MIN_GRAYSCALE_SONIFICATION-10, 0, cv::TRESH_TOZERO);
+
+    //frameDifferencingMask = _inputMat - _previousMat;
+    cv::absdiff(_inputMat, _previousMat, frameDifferencingMask);
+	_inputMat.copyTo(_previousMat);
+	cv::GaussianBlur(frameDifferencingMask, frameDifferencingMask, cv::Size(3,3), 2.0, 2.0);
+	cv::threshold(frameDifferencingMask, frameDifferencingMask, MIN_GRAYSCALE_SONIFICATION, 1, cv::THRESH_BINARY);
+
+    cv::threshold(_inputMat, depthProximityAlarmMask, 206, 1, cv::THRESH_BINARY);
+
+    finalMaskDepth = frameDifferencingMask+depthProximityAlarmMask;
+
+
+
+    //finalMaskDepth.copyTo(_outputMat);
+    cv::multiply(_inputMat, finalMaskDepth, _outputMat);
+
+    //cv::threshold(_outputMat, _outputMat, 1, 100, cv::THRESH_TOZERO);
+   
+    cv::resize(_outputMat, _outputMat, cv::Size(FRAME_WIDTH_SONIFIED, FRAME_HEIGHT_SONIFIED), 0, 0, 0);
+
+    /*float minVal = 100;
+    float maxVal = 255;
+
+    _outputMat.convertTo(_outputMat, CV_8UC1, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));*/
+}
+
+#else
+void lavVideoProcessor::processFrame() {
+
+
+
+	//to display input
+	//_inputMat.copyTo(_outputMatForDisplay);
+
+
+	//lavConstants::__startTimeChecking();
+
+	cv::absdiff(_inputMat, _previousMat, _outputMat);
+	_inputMat.copyTo(_previousMat);
+	cv::GaussianBlur(_outputMat, _outputMat, cv::Size(3,3), 2.0, 2.0);
+	cv::threshold(_outputMat, _outputMat, 100, 255, 0);
+
+
+	//lavConstants::__stopTimeChecking("standard video processing");
+
+	/*int nbActivePixel = cv::countNonZero(_outputMat);
+	if (nbActivePixel>10) {
+		_outputMat.setTo(cv::Scalar(255));
+	}*/
+
+	//_outputMat.setTo(cv::Scalar(255));
+	/*int x = 140;
+	int y = 60;
+	cv::rectangle( _outputMat, cv::Point( x, y), cv::Point(x+10, y+10), cv::Scalar( 255), -1);*/
+
+	//to comment if no display on the screen
+	//cv::cvtColor(_outputMat, _mOutputRGBA, 9);
+
+}
+#endif
+
+
+
+void lavVideoProcessor::acquireAndProcessFrame() {
+
+	//if (!_capture.empty()) {
+		//lavConstants::__startTimeChecking();
+
+        
+
+		//if (_capture->grab()) {
+
+            /*(*_capture) >> _tmpMat;
+
+            cv::resize(_tmpMat, _tmpMat, cv::Size(160,120), 0, 0, 1);
+            cvtColor(_tmpMat, _tmpMat, cv::COLOR_RGB2GRAY);
+            _tmpMat.convertTo(_inputMat, CV_8UC1);*/
+
+            _inputMat = _capture->getNextFrame();
+
+            /*if (_cptVideoFrame <100) {
+                cvtColor(_inputMat, _colorFrameForVideoRecording, CV_GRAY2BGR);
+                _pVideoWriter->write(_colorFrameForVideoRecording);
+            }*/
+            /*if (_cptVideoFrame %30 ==0) {
+                lavConstants::__stopTimeChecking("camera acquisition");
+                lavConstants::__startTimeChecking();
+            }
+            ++_cptVideoFrame;*/
+
+
+            //cv::imshow("depthCapture",_inputMat);
+            //cv::waitKey(10);
+            lavLog::displayImage("input",_inputMat);
+
+			//_capture->retrieve(_inputMat);// 1 for CV_CAP_ANDROID_GREY_FRAME
+			//lavConstants::__stopTimeChecking("camera acquire");
+
+			if (_firstFrame) {
+				_firstFrame = false;
+				_previousMat = _inputMat.clone();
+				_outputMat = _inputMat.clone();
+				_outputMatForDisplay = _inputMat.clone();
+			}
+
+			if (! _silence) {
+				processFrame();
+			}
+			else {
+				_outputMat.setTo(cv::Scalar(0));
+			}
+
+            if (_firstFrame) {
+                _outputMat.setTo(cv::Scalar(0));
+            }
+
+
+
+            //imshow("frame",_outputMat);
+            //cv::waitKey(10);
+        
+            lavLog::displayImage("sonify",_outputMat);
+
+            //int x=100;
+            //int y= 60;
+            //cv::rectangle(_outputMat, cv::Point(x,y), cv::Point(x+10,y+10), cv::Scalar(255),-1);
+
+			lavSonifier::sonify(&_outputMat);
+		//}
+	//}
+}
+
+
+
+void lavVideoProcessor::convertDataForAndroid(int bufferWidth, int bufferHeight, int bufferStride, int32_t* buffer) {
+
+	if (_outputMat.cols != 0) {
+
+		//cv::cvtColor(_outputMatForDisplay, _mOutputRGBA, 9);
+
+		int left_indent = (bufferWidth-FRAME_WIDTH_SONIFIED)/2;
+		int top_indent = (bufferHeight-FRAME_HEIGHT_SONIFIED)/2;
+
+		if (top_indent > 0)
+		{
+			memset(buffer, 0, top_indent*bufferStride*sizeof(int32_t));
+			buffer += top_indent*bufferStride;
+		}
+
+		for (int yy = 0; yy < FRAME_HEIGHT_SONIFIED; yy++)
+		{
+			if (left_indent > 0)
+			{
+				memset(buffer, 0, left_indent*sizeof(int32_t));
+				memset(buffer+left_indent+FRAME_WIDTH_SONIFIED, 0, (bufferStride-FRAME_WIDTH_SONIFIED-left_indent)*sizeof(int32_t));
+			}
+			int32_t* line = buffer + left_indent;
+			size_t line_size = FRAME_WIDTH_SONIFIED*4*sizeof(unsigned char);
+			memcpy(line, _mOutputRGBA.ptr<unsigned char>(yy), line_size);
+			// go to next line
+			buffer += bufferStride;
+		}
+	}
+}
+
+
+
+void* lavVideoProcessor::start_video_stream(void* args) {
+
+	while (! _close_video) {
+		acquireAndProcessFrame();
+		//usleep(5000);
+	}
+	lavLog::LAVLOG("video_close\n");
+	//_pCam->closeAcquisition();
+	_capture->release();
+
+
+	return NULL;
+}
+
+
+void lavVideoProcessor::start_thread_video_stream() {
+	pthread_t thread_video_processing;
+	pthread_create(&thread_video_processing, NULL, start_video_stream, (void*)NULL);
+}
+
+
+
+
+//for OCL
+/*
+namespace lavVideoProcessor {
+
+//private (anonymous namespace)
+namespace {
+
+	cv::Mat _inputMat;
+	cv::ocl::oclMat _inputMatOcl;
+	cv::ocl::oclMat _outputMatOcl;
+	cv::ocl::oclMat _previousMatOcl;
+	cv::ocl::oclMat _mAbsDiffFrameOcl;
+
+	cv::Mat _testFrameNormal;
+	cv::ocl::oclMat _testFrame;
+	cv::ocl::oclMat _testFrame2;
+	cv::ocl::oclMat _testFrame3;
+
+	cv::Mat _outputMat;
+	cv::Mat _mOutputRGBA;
+	cv::Mat _outputMatForDisplay;
+
+	//for LavCamera
+	//LavCamera* _pCam;
+	//end for LavCamera
+
+	//for android Camera
+	cv::Ptr<cv::VideoCapture> _capture;
+	//end android Camera
+
+    bool firstFrame = true;
+    int nbNonZero = 0;
+
+    int _close_video = 0;
+
+}
+
+
+void init() {
+
+	//for OCL
+	setenv("OPENCV_OPENCL_BINARY", "/system/vendor/lib/egl/libGLES_mali.so", 0);
+
+	cv::ocl::DevicesInfo devInfo;
+	int res = cv::ocl::getOpenCLDevices(devInfo);
+	if (res == 0)
+	{
+		LOGI("!!!!!!!!!!!!!!!!!!!!!!!! There is no OPENCL Here\n");
+	}else
+	{
+		for(int i = 0 ; i < devInfo.size() ; ++i)
+		{
+			LOGI("Device : %s\n", devInfo[i]->deviceName.c_str());
+		}
+	}
+	//end for OCL
+
+	//for LavCamera
+	//_pCam = new LavCamera(0);
+	//end for LavCamera
+
+
+	//for android camera
+	_capture = new cv::VideoCapture(0);
+	_capture->set(CV_CAP_PROP_FRAME_WIDTH, FRAME_WIDTH_SONIFIED);
+	_capture->set(CV_CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT_SONIFIED);
+	//end for android camera
+
+	_mOutputRGBA = cv::Mat(FRAME_HEIGHT_SONIFIED, FRAME_WIDTH_SONIFIED, CV_8UC4);
+
+	_outputMat = cv::Mat(160, 120, CV_8UC1);
+	_testFrameNormal = cv::Mat(3840, 2160, CV_8UC1);
+	_testFrame = cv::ocl::oclMat(3840, 2160, CV_8UC1);
+	_testFrame2 = cv::ocl::oclMat(3840, 2160, CV_8UC1);
+	_testFrame3  = cv::ocl::oclMat(3840, 2160, CV_8UC1);
+
+
+}
+
+void release() {
+
+	_close_video = 1;
+
+}
+
+void processFrame() {
+
+	//LOGI("processFrame\n");
+
+	_inputMatOcl.upload(_inputMat);
+
+	if (firstFrame) {
+		firstFrame = false;
+		_previousMatOcl = _inputMatOcl.clone();
+		_outputMatOcl = _inputMatOcl.clone();
+		_outputMatForDisplay = _inputMat.clone();
+	}
+
+
+	//lavConstants::__startTimeChecking();
+
+	// Video processing with OpenCL-OpenCV
+	cv::ocl::absdiff(_inputMatOcl, _previousMatOcl, _outputMatOcl);
+	_inputMatOcl.copyTo(_previousMatOcl);
+	cv::ocl::GaussianBlur(_outputMatOcl, _outputMatOcl, cv::Size(3,3), 2.0, 2.0);
+	cv::ocl::threshold(_outputMatOcl, _outputMatOcl, 100, 255, 0);
+	_outputMatOcl.download(_outputMat);
+
+
+	_outputMat.setTo(cv::Scalar(255));
+
+	//lavConstants::__stopTimeChecking("ocl video processing");
+
+
+	//to comment if no display on the screen
+	//cv::cvtColor(_outputMat, _mOutputRGBA, 9);
+
+}
+
+void acquireAndProcessFrame() {
+
+	if (!_capture.empty()) {
+		//lavConstants::__startTimeChecking();
+
+		if (_capture->grab()) {
+
+
+			_capture->retrieve(_inputMat, 1);// 1 for CV_CAP_ANDROID_GREY_FRAME
+			//lavConstants::__stopTimeChecking("camera acquire");
+
+			processFrame();
+			lavSonifier::sonify(&_outputMat);
+		}
+	}
+}
+
+
+
+void convertDataForAndroid(int bufferWidth, int bufferHeight, int bufferStride, int32_t* buffer) {
+
+	if (_outputMat.cols != 0) {
+
+		//cv::cvtColor(_outputMatForDisplay, _mOutputRGBA, 9);
+
+		int left_indent = (bufferWidth-FRAME_WIDTH_SONIFIED)/2;
+		int top_indent = (bufferHeight-FRAME_HEIGHT_SONIFIED)/2;
+
+		if (top_indent > 0)
+		{
+			memset(buffer, 0, top_indent*bufferStride*sizeof(int32_t));
+			buffer += top_indent*bufferStride;
+		}
+
+		for (int yy = 0; yy < FRAME_HEIGHT_SONIFIED; yy++)
+		{
+			if (left_indent > 0)
+			{
+				memset(buffer, 0, left_indent*sizeof(int32_t));
+				memset(buffer+left_indent+FRAME_WIDTH_SONIFIED, 0, (bufferStride-FRAME_WIDTH_SONIFIED-left_indent)*sizeof(int32_t));
+			}
+			int32_t* line = buffer + left_indent;
+			size_t line_size = FRAME_WIDTH_SONIFIED*4*sizeof(unsigned char);
+			memcpy(line, _mOutputRGBA.ptr<unsigned char>(yy), line_size);
+			// go to next line
+			buffer += bufferStride;
+		}
+	}
+}
+
+
+
+void* start_video_stream(void* args) {
+
+	while (! _close_video) {
+		acquireAndProcessFrame();
+		//usleep(5000);
+	}
+	LOGI("video_close\n");
+	//_pCam->closeAcquisition();
+	_capture->release();
+
+
+	return NULL;
+}
+
+
+void start_thread_video_stream() {
+	pthread_t thread_play_stream_audio;
+	pthread_create(&thread_play_stream_audio, NULL, start_video_stream, (void*)NULL);
+}
+
+*/
+
+
