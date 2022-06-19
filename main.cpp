@@ -8,7 +8,7 @@
 #include "sonifier/lav_video_processor.h"
 #include "sonifier/lav_log.h"
 #include "Stag.h"
-
+#include "path/Graph.h"
 
 void drawMarkers(cv::Mat* image, const vector<Marker> &markers)
 {
@@ -35,6 +35,13 @@ void drawMarkers(cv::Mat* image, const vector<Marker> &markers)
 }
 
 int main() {
+    Graph graph("/home/florian/CLionProjects/SoundPathFinding/path/graph.txt");
+    graph.showGraph();
+    graph.computeBFS(0,4);
+
+
+
+
     lavVideoProcessor::init();
     lavLog::LAVLOG("lavVideoProcessor::start_thread_video_stream\n");
     lavVideoProcessor::start_thread_video_stream();

@@ -38,6 +38,10 @@ file(GLOB MARKER_FILE2 "marker/ED/*.c*")
 file(GLOB SOUND_HEADER "sonifier/*.h*")
 file(GLOB SOUND_SOURCE "sonifier/*.c*")
 
+file(GLOB PATH_HEADER "path/*.h*")
+file(GLOB PATH_SOURCE "path/*.c*")
+
+
 include_directories(
         ${OpenCV_INCLUDE_DIRS}
         ${ALSA_INCLUDE_DIRS}
@@ -48,8 +52,7 @@ include_directories(
 add_library(
         LibStag SHARED
         ${MARKER_FILE1}
-        ${MARKER_FILE2}
-        path/Dijkstra.cpp path/Dijkstra.h)
+        ${MARKER_FILE2})
 target_link_libraries(
         LibStag
         ${OpenCV_LIBS} ${realsense2_LIBRARY}
@@ -61,6 +64,8 @@ add_executable(
         main.cpp
         ${SOUND_HEADER}
         ${SOUND_SOURCE}
+        ${PATH_HEADER}
+        ${PATH_SOURCE}
 )
 
 target_link_libraries(
