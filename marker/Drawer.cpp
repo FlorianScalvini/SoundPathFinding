@@ -116,30 +116,35 @@ void Drawer::drawMarkers(const string& path, Mat image, const vector<Marker> &ma
 	Mat greyMat = image.clone();
 	Mat bgrMat;
 	cv::cvtColor(greyMat, bgrMat, cv::COLOR_GRAY2BGR);
-
-	for (int i = 0; i < markers.size(); i++)
-	{
-		vector<Point2d> corners = markers[i].corners;
-		Point2d center = markers[i].center;
-
-		cv::circle(bgrMat, cv::Point(corners[0].x, corners[0].y), 6, cv::Scalar(255, 255, 255), -1, cv::LINE_AA);
-		for (int j = 0; j < 4; j++)
-			cv::line(bgrMat, cv::Point(corners[j].x, corners[j].y), cv::Point(corners[(j + 1) % 4].x, corners[(j + 1) % 4].y), cv::Scalar(255, 255, 255), 3, cv::LINE_AA);
-
-		cv::circle(bgrMat, cv::Point(corners[0].x, corners[0].y), 5, cv::Scalar(50, 255, 50), -1, cv::LINE_AA);
-		for (int j = 0; j < 4; j++)
-			cv::line(bgrMat, cv::Point(corners[j].x, corners[j].y), cv::Point(corners[(j + 1) % 4].x, corners[(j + 1) % 4].y), cv::Scalar(50, 255, 50), 2, cv::LINE_AA);
-
-		cv::circle(bgrMat, cv::Point(center.x, center.y), 6, cv::Scalar(255, 255, 255), -1, cv::LINE_AA);
-		cv::circle(bgrMat, cv::Point(center.x, center.y), 5, cv::Scalar(50, 255, 50), -1, cv::LINE_AA);
-
-		cv::putText(bgrMat, std::to_string(markers[i].id), center, cv::FONT_HERSHEY_DUPLEX, 2, cv::Scalar(255, 255, 255), 5, cv::LINE_AA);
-		cv::putText(bgrMat, std::to_string(markers[i].id), center, cv::FONT_HERSHEY_DUPLEX, 2, cv::Scalar(50, 50, 255), 2, cv::LINE_AA);
-	}
+    this->drawMarkers(&bgrMat, markers);
 	vector<int> compressionParams = { cv::IMWRITE_PNG_COMPRESSION, 0 };
 	cv::imwrite(path, bgrMat, compressionParams);
 }
 
+
+void Drawer::drawMarkers(cv::Mat* image, const vector<Marker> &markers)
+{
+
+    for (int i = 0; i < markers.size(); i++)
+    {
+        vector<cv::Point2d> corners = markers[i].corners;
+        cv::Point2d center = markers[i].center;
+
+        cv::circle(*image, cv::Point(corners[0].x, corners[0].y), 6, cv::Scalar(255, 255, 255), -1, cv::LINE_AA);
+        for (int j = 0; j < 4; j++)
+            cv::line(*image, cv::Point(corners[j].x, corners[j].y), cv::Point(corners[(j + 1) % 4].x, corners[(j + 1) % 4].y), cv::Scalar(255, 255, 255), 3, cv::LINE_AA);
+
+        cv::circle(*image, cv::Point(corners[0].x, corners[0].y), 5, cv::Scalar(50, 255, 50), -1, cv::LINE_AA);
+        for (int j = 0; j < 4; j++)
+            cv::line(*image, cv::Point(corners[j].x, corners[j].y), cv::Point(corners[(j + 1) % 4].x, corners[(j + 1) % 4].y), cv::Scalar(50, 255, 50), 2, cv::LINE_AA);
+
+        cv::circle(*image, cv::Point(center.x, center.y), 6, cv::Scalar(255, 255, 255), -1, cv::LINE_AA);
+        cv::circle(*image, cv::Point(center.x, center.y), 5, cv::Scalar(50, 255, 50), -1, cv::LINE_AA);
+
+        cv::putText(*image, std::to_string(markers[i].id), center, cv::FONT_HERSHEY_DUPLEX, 2, cv::Scalar(255, 255, 255), 5, cv::LINE_AA);
+        cv::putText(*image, std::to_string(markers[i].id), center, cv::FONT_HERSHEY_DUPLEX, 2, cv::Scalar(50, 50, 255), 2, cv::LINE_AA);
+    }
+}
 
 void Drawer::drawEllipses(const string& path, Mat image, const vector<Marker> &markers)
 {
