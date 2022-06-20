@@ -136,6 +136,11 @@ int WavHelpers::writeStandardWavFile(const char* filename, char* format, char* d
 
 }
 
+Wav_header* WavHelpers::getHeader()
+{
+    return &header;
+}
+
 void WavHelpers::readData(float* data, int nbItem) {
     if(_wav_file == nullptr)
         fclose(_wav_file);

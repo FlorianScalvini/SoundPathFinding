@@ -56,10 +56,10 @@ public:
     void readData(float *data, int nb_item);
     int getSizeData();
     int getSizeHeader();
-
+    Wav_header* getHeader();
     FILE *_wav_file;
-    Wav_header header;
 private:
+    Wav_header header;
     char * filename;
     int sizeHeader;
 
