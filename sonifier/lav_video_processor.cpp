@@ -1,23 +1,49 @@
 
 #include "lav_video_processor.h"
 
-#include <chrono>
 
 
-cv::Size size(320, 240);//SHORT_RANGE
+cv::Size sizeDepth(DEPTH_FRAME_WIDTH, DEPTH_FRAME_WIDTH);//SHORT_RANGE
+cv::Size sizeColor(COLOR_FRAME_WIDTH, COLOR_FRAME_WIDTH);//SHORT_RANGE
+
+
 //cv::Size size(160, 120);//LONG_RANGE
+bool lavVideoProcessor::_colorProcessingDone = false;
+bool lavVideoProcessor::_colorProcessingReady = false;
+pthread_mutex_t lavVideoProcessor::_mutexColorProcessing = PTHREAD_MUTEX_INITIALIZER;
+cv::VideoWriter* lavVideoProcessor::_pVideoWriter = new  cv::VideoWriter("recording.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 25, sizeDepth, true);
+unsigned int lavVideoProcessor::_cptVideoFrame = 0;
+cv::Mat lavVideoProcessor::_inputMat;
+cv::Mat lavVideoProcessor::_inputMatScaled = cv::Mat(sizeDepth, CV_8UC1);
+cv::Mat lavVideoProcessor::_inputMatColor;
+cv::Mat lavVideoProcessor::_tmpMat;
+cv::Mat lavVideoProcessor::_outputMat;
+cv::Mat lavVideoProcessor::_mOutputRGBA;
+cv::Mat lavVideoProcessor::_previousMat;
+cv::Mat lavVideoProcessor::_outputMatForDisplay;
+cv::Mat lavVideoProcessor::_colorFrameForVideoRecording = cv::Mat(sizeDepth, CV_8UC3);
+
+lavVideoCapture* lavVideoProcessor::_capture = 0;
+
+bool lavVideoProcessor::_silence = 0;
+bool lavVideoProcessor::_firstFrame = true;
+int lavVideoProcessor::_nbNonZero = 0;
+int lavVideoProcessor::_close_video = 0;
+
+//pthread_t lavVideoProcessor::thread_video_processing;
+
 
 #ifdef DEPTH_VIDEOPROCESSING
-cv::Mat lavVideoProcessor::currentGoodPixelsMask = cv::Mat(size, CV_8UC1);
-cv::Mat lavVideoProcessor::previousGoodPixelsMask = cv::Mat(size, CV_8UC1);
-cv::Mat lavVideoProcessor::currentAndPreviousGoodPixelsMask = cv::Mat(size, CV_8UC1);
-cv::Mat lavVideoProcessor::newGoodPixelsMask = cv::Mat(size, CV_8UC1);
+cv::Mat lavVideoProcessor::currentGoodPixelsMask = cv::Mat(sizeDepth, CV_8UC1);
+cv::Mat lavVideoProcessor::previousGoodPixelsMask = cv::Mat(sizeDepth, CV_8UC1);
+cv::Mat lavVideoProcessor::currentAndPreviousGoodPixelsMask = cv::Mat(sizeDepth, CV_8UC1);
+cv::Mat lavVideoProcessor::newGoodPixelsMask = cv::Mat(sizeDepth, CV_8UC1);
 
-cv::Mat lavVideoProcessor::depthProximityAlarmMask = cv::Mat(size, CV_8UC1);
-cv::Mat lavVideoProcessor::frameDifferencing = cv::Mat(size, CV_8UC1);
-cv::Mat lavVideoProcessor::frameDifferencingMask = cv::Mat(size, CV_8UC1);
-cv::Mat lavVideoProcessor::selectedFrameDifferencing = cv::Mat(size, CV_8UC1);
-cv::Mat lavVideoProcessor::finalMaskDepth = cv::Mat(size, CV_8UC1);
+cv::Mat lavVideoProcessor::depthProximityAlarmMask = cv::Mat(sizeDepth, CV_8UC1);
+cv::Mat lavVideoProcessor::frameDifferencing = cv::Mat(sizeDepth, CV_8UC1);
+cv::Mat lavVideoProcessor::frameDifferencingMask = cv::Mat(sizeDepth, CV_8UC1);
+cv::Mat lavVideoProcessor::selectedFrameDifferencing = cv::Mat(sizeDepth, CV_8UC1);
+cv::Mat lavVideoProcessor::finalMaskDepth = cv::Mat(sizeDepth, CV_8UC1);
 #endif
 
 #ifdef OBJECT_DETECTION
@@ -30,45 +56,11 @@ cv::Scalar colors[256];
 Sort lavVideoProcessor::_sort;
 #endif
 
-bool lavVideoProcessor::_colorProcessingDone = false;
-bool lavVideoProcessor::_colorProcessingReady = false;
-pthread_mutex_t lavVideoProcessor::_mutexColorProcessing = PTHREAD_MUTEX_INITIALIZER;
-
-cv::VideoWriter* lavVideoProcessor::_pVideoWriter = new  cv::VideoWriter("recording.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 25, size, true);
+#ifdef PATH_MARKER
+Stag lavVideoProcessor::stagDetector = Stag(15, 7, false);
+#endif
 
 
-unsigned int lavVideoProcessor::_cptVideoFrame = 0;
-cv::Mat lavVideoProcessor::_inputMat;
-cv::Mat lavVideoProcessor::_inputMatScaled = cv::Mat(size, CV_8UC1);;
-cv::Mat lavVideoProcessor::_inputMatColor;
-cv::Mat lavVideoProcessor::_tmpMat;
-cv::Mat lavVideoProcessor::_outputMat;
-cv::Mat lavVideoProcessor::_mOutputRGBA;
-cv::Mat lavVideoProcessor::_previousMat;
-cv::Mat lavVideoProcessor::_outputMatForDisplay;
-cv::Mat lavVideoProcessor::_colorFrameForVideoRecording = cv::Mat(size, CV_8UC3);
-
-//lavVideoCapture* lavVideoProcessor::_capture =  new lavOpencvVideoFile("/home/maxime/data/boulot/recherche/lead/development/C++/sonifier/src/res/01_01_near.avi", 25);    
-//lavVideoCapture* lavVideoProcessor::_capture =  new lavOpencvVideoFile("/home/maxime/data/boulot/recherche/lead/development/C++/sonifier/sonifier/res/stimuli_video/video/approach/01_01_coming.avi", 25);   
-//lavVideoCapture* lavVideoProcessor::_capture =  new lavOpencvVideoFile("/home/maxime/data/boulot/recherche/lead/development/C++/sonifier/sonifier/res/stimuli_video/video_depth/trajectory/09_09_far.avi", 25);   
-//lavVideoCapture* lavVideoProcessor::_capture =  new lavOpencvCamera();
-
-//lavVideoCapture* lavVideoProcessor::_capture =  new lavUdpCamera("193.50.49.204", 59200);
-//lavVideoCapture* lavVideoProcessor::_capture =  new lavUdpCamera("127.0.0.1", 59200);
-//lavVideoCapture* lavVideoProcessor::_capture =  0;//for lavSoftKineticCamera (a completer dans le constructeur)   
-
-lavVideoCapture* lavVideoProcessor::_capture = 0;
-
-
-//cv::Ptr<cv::VideoCapture> lavVideoProcessor::_capture;
-
-
-bool lavVideoProcessor::_silence = 0;
-bool lavVideoProcessor::_firstFrame = true;
-int lavVideoProcessor::_nbNonZero = 0;
-int lavVideoProcessor::_close_video = 0;
-
-//pthread_t lavVideoProcessor::thread_video_processing;
 
 #ifdef OBJECT_DETECTION
 void lavVideoProcessor::init() {
@@ -242,7 +234,30 @@ void lavVideoProcessor::acquireAndProcessFrame() {
     pthread_mutex_unlock(&_mutexColorProcessing);
 }
 
+#ifdef PATH_MARKER
+void* lavVideoProcessor::acquireAndProcessFrameColor(void *args)
+{
+    cv::Mat img = cv::Mat(sizeColor, CV_8UC1);
+    while(!_close_video)
+    {
+        while (!_colorProcessingReady) {
+            usleep(500);
+        }
+        pthread_mutex_lock(&_mutexColorProcessing);
+        _colorProcessingReady = false;
+        pthread_mutex_unlock(&_mutexColorProcessing);
+        _inputMatColor = _capture->getNextFrameColor();
+        cv::cvtColor(_inputMatColor, img, cv::COLOR_BGR2GRAY);
+        stagDetector.detectMarkers(img);
 
+
+        pthread_mutex_lock(&_mutexColorProcessing);
+        _colorProcessingDone = true;
+        pthread_mutex_unlock(&_mutexColorProcessing);
+    }
+    return nullptr;
+}
+#else
 
 void* lavVideoProcessor::acquireAndProcessFrameColor(void *args)
 {
@@ -256,16 +271,13 @@ void* lavVideoProcessor::acquireAndProcessFrameColor(void *args)
         _colorProcessingReady = false;
         pthread_mutex_unlock(&_mutexColorProcessing);
         _inputMatColor = _capture->getNextFrameColor();
-
-        // DO PROCESSING
-
         pthread_mutex_lock(&_mutexColorProcessing);
         _colorProcessingDone = true;
         pthread_mutex_unlock(&_mutexColorProcessing);
     }
     return nullptr;
 }
-
+#endif
 
 void* lavVideoProcessor::start_video_stream(void* args) {
 	//int i = 0;

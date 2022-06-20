@@ -34,7 +34,7 @@ class Stag
 public:
 	Stag(int libraryHD = 15, int errorCorrection = 7, bool inKeepLogs = false);
 	void detectMarkers(cv::Mat inImage);
-	void logResults(string path = "");
+	void logResults(const string& path = "");
 
     vector<Marker> markers;
 };

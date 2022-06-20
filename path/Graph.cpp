@@ -89,54 +89,6 @@ void Graph::showGraph()
 }
 
 
-std::set<unsigned int> Graph::computeBFS(unsigned int src, unsigned int dst)
-{
-    std::set<unsigned int> path;
-    std::set<unsigned int> reversePath;
-    std::map<unsigned int, unsigned int> activateLink;
-    std::queue<Node*> queue;
-    bool foundDst = false;
-
-    queue.push(this->getNode(src));
-    while(!queue.empty())
-    {
-        Node* curr = queue.front();
-        queue.pop();
-        if(curr->label == dst)
-        {
-            foundDst = true;
-            break;
-        }
-        for(auto node : curr->links)
-        {
-            if(activateLink.find(node->label) == activateLink.end())
-            {
-                activateLink[node->label] = curr->label;
-                queue.push(node);
-            }
-        }
-    }
-    if(foundDst)
-    {
-        unsigned int indicePath = dst;
-        reversePath.insert(dst);
-        while(indicePath != src) {
-            indicePath = activateLink[indicePath];
-            reversePath.insert(indicePath);
-        }
-
-        std::set<unsigned int>::reverse_iterator rev_it;
-        for (rev_it = reversePath.rbegin(); rev_it != reversePath.rend(); rev_it++)
-        {
-            path.insert(*rev_it);
-        }
-    }
-    return path;
-}
-
-
-
-
 std::vector<int> Graph::extractListValue( char ** txt,  char separator, const char * lastTxt)
 {
     std::vector<int> result;

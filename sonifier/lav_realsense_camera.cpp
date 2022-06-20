@@ -90,8 +90,8 @@ void lavRealsenseCamera::configureDepthCamera()
     //check_for_camera();
     //cfg.enable_device_from_file("");
     lavLog::LAVLOG("Check OK\n");
-    cfg.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16,30); // Set Stream Output + Resolution + Format + Framerate
-    cfg.enable_stream(RS2_STREAM_COLOR, 1920, 1080, RS2_FORMAT_RGB8,30);
+    cfg.enable_stream(RS2_STREAM_DEPTH, DEPTH_FRAME_WIDTH, DEPTH_FRAME_HEIGHT, RS2_FORMAT_Z16,30); // Set Stream Output + Resolution + Format + Framerate
+    cfg.enable_stream(RS2_STREAM_COLOR, COLOR_FRAME_WIDTH, COLOR_FRAME_HEIGHT, RS2_FORMAT_RGB8,30);
 }
 
 void lavRealsenseCamera::check_for_camera()

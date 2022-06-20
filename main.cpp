@@ -35,11 +35,6 @@ void drawMarkers(cv::Mat* image, const vector<Marker> &markers)
 }
 
 int main() {
-    Graph graph("/home/florian/CLionProjects/SoundPathFinding/path/graph.txt");
-    graph.showGraph();
-    graph.computeBFS(0,4);
-
-
 
 
     lavVideoProcessor::init();

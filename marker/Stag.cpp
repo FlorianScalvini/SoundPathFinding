@@ -26,29 +26,31 @@ void Stag::detectMarkers(Mat inImage)
 
 	vector<Quad> quads = quadDetector.getQuads();
 
-	for (int indQuad = 0; indQuad < quads.size(); indQuad++)
+	for (auto & quad : quads)
 	{
-		quads[indQuad].estimateHomography();
-		Codeword c = readCode(quads[indQuad]);
+		quad.estimateHomography();
+		Codeword c = readCode(quad);
 		int shift;
 		int id;
 		if (decoder.decode(c, errorCorrection, id, shift))
 		{
-			Marker marker(quads[indQuad], id);
+			Marker marker(quad, id);
 			marker.shiftCorners2(shift);
 			markers.push_back(marker);
 		}
 		else if (keepLogs)
-			falseCandidates.push_back(quads[indQuad]);
+			falseCandidates.push_back(quad);
 	}
 
-	for (int indMarker = 0; indMarker < markers.size(); indMarker++)
-		poseRefiner.refineMarkerPose(&edInterface, markers[indMarker]);
+	for (auto & marker : markers)
+		poseRefiner.refineMarkerPose(&edInterface, marker);
 }
 
 
-void Stag::logResults(string path)
+void Stag::logResults(const string& path)
 {
+    cv::Mat grayMat;
+    cv::cvtColor(image, grayMat, cv::COLOR_GRAY2BGR);
 	drawer.drawEdgeMap(path + "1 edges.png", image, edInterface.getEdgeMap());
 	drawer.drawLines(path + "2 lines.png", image, edInterface.getEDLines());
 	drawer.drawCorners(path + "3 corners.png", image, quadDetector.getCornerGroups());

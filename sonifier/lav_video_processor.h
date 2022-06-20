@@ -6,7 +6,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 //#include <opencv2/ocl/ocl.hpp>
-
+#include "Drawer.h"
 
 
 //#include <android_native_app_glue.h>
@@ -29,6 +29,10 @@
 #include "Detection/DetecteurLibtorch.h"
 #include "Detection/Detecteur.h"
 #include "Detection/DetecteurTensorRT.h"
+#endif
+
+#ifdef PATH_MARKER
+#include "Stag.h"
 #endif
 
 
@@ -75,7 +79,9 @@ class lavVideoProcessor {
         #endif
 
 
-
+        #ifdef PATH_MARKER
+        static Stag stagDetector;
+        #endif
 
         //static pthread_t thread_video_processing;
 

@@ -32,7 +32,7 @@ public:
     Node* getNode(unsigned int indice);
     void addLink(unsigned int src, int dst);
     void showGraph();
-    std::set<unsigned int> computeBFS(unsigned int src, unsigned int dst);
+
 private:
     unsigned int numNode;
     std::map<unsigned int, Node*> nodes;
