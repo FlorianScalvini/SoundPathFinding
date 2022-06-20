@@ -5,7 +5,7 @@
 //  Created by Florian Scalvini on 19/06/2022.
 //
 
-#include "Graph.h"
+#include "graph.h"
 #include <iostream>
 #include <fstream>
 #include <queue>

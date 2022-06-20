@@ -5,11 +5,12 @@
 #ifndef STAG_PATHFINDING_H
 #define STAG_PATHFINDING_H
 
-#include "Graph.h"
+#include "graph.h"
 
 
 class PathFinding {
-    PathFinding(Graph* graph);
+public:
+    explicit PathFinding(Graph* graph);
     int newPath(unsigned int src, unsigned int dst);
     Node* update();
     Node* getCurrentNode();

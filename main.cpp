@@ -8,7 +8,7 @@
 #include "sonifier/lav_video_processor.h"
 #include "sonifier/lav_log.h"
 #include "Stag.h"
-#include "path/Graph.h"
+#include "path/graph.h"
 
 
 int main() {
