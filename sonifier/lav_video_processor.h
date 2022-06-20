@@ -58,7 +58,7 @@ class lavVideoProcessor {
         static unsigned int _cptVideoFrame;
         static cv::Mat _inputMat;
         static cv::Mat _inputMatScaled;
-    static cv::Mat _tmpMat;
+        static cv::Mat _tmpMat;
 		static cv::Mat _outputMat;
 		static cv::Mat _mOutputRGBA;
 		static cv::Mat _previousMat;
@@ -119,8 +119,8 @@ class lavVideoProcessor {
         static void* acquireAndProcessFrameColor(void *args);
 	    static void start_thread_video_stream();
 
-    static bool _colorProcessingDone;
-    static cv::Mat _inputMatColor;
+        static bool _colorProcessingDone;
+        static cv::Mat _inputMatColor;
 };
 
 

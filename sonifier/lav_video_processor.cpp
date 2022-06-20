@@ -249,8 +249,6 @@ void* lavVideoProcessor::acquireAndProcessFrameColor(void *args)
         _inputMatColor = _capture->getNextFrameColor();
         cv::cvtColor(_inputMatColor, img, cv::COLOR_BGR2GRAY);
         stagDetector.detectMarkers(img);
-
-
         pthread_mutex_lock(&_mutexColorProcessing);
         _colorProcessingDone = true;
         pthread_mutex_unlock(&_mutexColorProcessing);

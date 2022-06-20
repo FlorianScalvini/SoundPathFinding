@@ -65,20 +65,18 @@ float lavSynthesizer::getFrequency(int idRow, int idCol) {
 void lavSynthesizer::exportToWav(float*** sound_db, char* databasePath) {
 
     lavLog::LAVLOG("exportToWav\n");
-
-	lavWav::createWavFile(databasePath);
-
+    std::unique_ptr <WavHelpers> wavfile(new WavHelpers());
+    wavfile->createWavFile(databasePath);
 	for (unsigned int ID_x =0; ID_x<FRAME_WIDTH_SONIFIED; ++ID_x) {
 		float** curr_sound_db_x = sound_db[ID_x];
 
 		for (unsigned int ID_y =0; ID_y<FRAME_HEIGHT_SONIFIED; ++ID_y) {
 			float* curr_sound_db_x_y = curr_sound_db_x[ID_y];
 
-			lavWav::addByteToWave((char*)curr_sound_db_x_y, SIZE_SOUND_IN_VALUE *4 );
+            wavfile->addByteToWave((char*)curr_sound_db_x_y, SIZE_SOUND_IN_VALUE *4 );
 		}
 	}
-
-	lavWav::closeWavFile();
+    wavfile->closeWavFile();
 }
 
 void lavSynthesizer::initFromSynthesizing(char* databasePath) {

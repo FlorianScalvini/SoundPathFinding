@@ -34,6 +34,21 @@ public:
 
 	// draws refined markers and their ellipses
 	void drawEllipses(const string& path, cv::Mat image, const vector<Marker> &markers);
+
+
+    void drawEdgeMap(cv::Mat* image, const vector<Marker> &markers);
+
+    // draws line segments
+    void drawLines(cv::Mat* image, const vector<Marker> &markers);
+
+    // draws corners (intersections of line segments)
+    void drawCorners(cv::Mat* image, const vector<Marker> &markers);
+
+    // draws quads
+    void drawQuads(cv::Mat* image, const vector<Marker> &markers);
+
+    // draws markers
+    void drawMarkers(cv::Mat* image, const vector<Marker> &markers);
 };
 
 #endif

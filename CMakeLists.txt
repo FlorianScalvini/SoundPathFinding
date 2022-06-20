@@ -35,12 +35,14 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 file(GLOB MARKER_FILE1 "marker/*.c*")
 file(GLOB MARKER_FILE2 "marker/ED/*.c*")
 
-file(GLOB SOUND_HEADER "sonifier/*.h*")
-file(GLOB SOUND_SOURCE "sonifier/*.c*")
+file(GLOB SONIFIER_HEADER "sonifier/*.h*")
+file(GLOB SONIFIER_SOURCE "sonifier/*.c*")
 
 file(GLOB PATH_HEADER "path/*.h*")
 file(GLOB PATH_SOURCE "path/*.c*")
 
+file(GLOB SOUND_HEADER "sound/*.h*")
+file(GLOB SOUND_SOURCE "sound/*.c*")
 
 include_directories(
         ${OpenCV_INCLUDE_DIRS}
@@ -62,10 +64,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/app)
 add_executable(
         testrun
         main.cpp
-        ${SOUND_HEADER}
-        ${SOUND_SOURCE}
+        ${SONIFIER_HEADER}
+        ${SONIFIER_SOURCE}
         ${PATH_HEADER}
         ${PATH_SOURCE}
+        ${SOUND_HEADER}
+        ${SOUND_SOURCE}
 )
 
 target_link_libraries(

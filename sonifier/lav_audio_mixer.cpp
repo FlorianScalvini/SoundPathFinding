@@ -48,7 +48,7 @@ void lavAudioMixer::recordCurrentAudioChunk(void* currentAudioChunck)
 
     if (_cptRecordedAudioChunk>_nbChunkToRecord) {
         _recordOutputInWave = false;
-        lavWav::writeStandardWavFile(_recordingFileName, (char *)"SHORT", (char*) _arrayForWaveFile, SIZE_AUDIO_CHUNK_IN_BYTE*_nbChunkToRecord);
+        WavHelpers::writeStandardWavFile(_recordingFileName, (char *)"SHORT", (char*) _arrayForWaveFile, SIZE_AUDIO_CHUNK_IN_BYTE*_nbChunkToRecord);
         //lavLog::LAVLOG("RECORD !!!!", _recordingFileName);
     }
 }
