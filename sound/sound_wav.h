@@ -2,8 +2,8 @@
 // Created by ubuntu on 20/06/22.
 //
 
-#ifndef STAG_WAV_HELPERS_H
-#define STAG_WAV_HELPERS_H
+#ifndef STAG_SOUND_WAV_H
+#define STAG_SOUND_WAV_H
 
 #include <iostream>
 #include <math.h>
@@ -44,16 +44,19 @@ struct Wav_header {
 };
 
 
-class WavHelpers{
+class SoundWav{
 public:
-    WavHelpers(char * filename);
-    WavHelpers(){};
+    SoundWav(char * filename);
+    SoundWav(){};
     static int writeStandardWavFile(const char* filename, char* format, char* data, unsigned int nbByte);
     void closeWavFile();
     int addByteToWave(char* data, unsigned int nbByte);
     int createWavFile(char* databasePath);
     int readHeader();
-    void readData(float *data, int nb_item);
+
+    template<typename T>
+    void readData(T *data, int nb_item);
+
     int getSizeData();
     int getSizeHeader();
     Wav_header* getHeader();

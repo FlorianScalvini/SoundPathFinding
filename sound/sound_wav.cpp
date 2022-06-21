@@ -2,22 +2,22 @@
 // Created by ubuntu on 20/06/22.
 //
 
-#include "wav_helpers.h"
+#include "sound_wav.h"
 
-WavHelpers::WavHelpers(char *filepath) : filename(filepath)
+SoundWav::SoundWav(char *filepath) : filename(filepath)
 {
     _wav_file = nullptr;
 }
 
-int WavHelpers::getSizeData(){
+int SoundWav::getSizeData(){
     this->sizeData;
 }
 
-int WavHelpers::getSizeHeader(){
+int SoundWav::getSizeHeader(){
     this->sizeHeader;
 }
 
-int WavHelpers::readHeader()
+int SoundWav::readHeader()
 {
     if(_wav_file == nullptr)
         fclose(_wav_file);
@@ -64,7 +64,7 @@ int WavHelpers::readHeader()
 }
 
 
-int WavHelpers::writeStandardWavFile(const char* filename, char* format, char* data, unsigned int nbByte) {
+int SoundWav::writeStandardWavFile(const char* filename, char* format, char* data, unsigned int nbByte) {
 
     //int nbSample = 10000;
     //short* sound = (short*) calloc(nbSample*2, sizeof(short));
@@ -136,12 +136,13 @@ int WavHelpers::writeStandardWavFile(const char* filename, char* format, char* d
 
 }
 
-Wav_header* WavHelpers::getHeader()
+Wav_header* SoundWav::getHeader()
 {
     return &header;
 }
 
-void WavHelpers::readData(float* data, int nbItem) {
+template<typename T>
+void SoundWav::readData(T* data, int nbItem) {
     if(_wav_file == nullptr)
         fclose(_wav_file);
     _wav_file = fopen(filename, "rb");
@@ -172,7 +173,7 @@ void WavHelpers::readData(float* data, int nbItem) {
 }
 
 
-int WavHelpers::createWavFile(char *databasePath)
+int SoundWav::createWavFile(char *databasePath)
 {
     filename = databasePath;
     sizeData = 0;

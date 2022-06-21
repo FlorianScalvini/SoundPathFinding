@@ -80,12 +80,8 @@ void lavSonifier::sonify(cv::Mat* mAbsDiffFrame) {
 		int cptPixInCompression = 0;
 		int nbSonifiedPix = 0;
 		float* sound = NULL;
-
 		unsigned int ID_y,ID_x, ID_t;
 		uchar* p;
-
-		//lavConstants::__startTimeChecking();
-
 		for( ID_y = 0; ID_y < FRAME_HEIGHT_SONIFIED; ++ID_y)
 		{
 			p = inputMat.ptr<uchar>(ID_y);
@@ -99,7 +95,6 @@ void lavSonifier::sonify(cv::Mat* mAbsDiffFrame) {
 					//if compression                    
 					if ((cptPixInCompression < _nbKeptPixInSimplificationChunk)) {
 						sound = lavSoundDatabase::getSound(ID_x, ID_y);
-						//sound = lavSoundDatabase::getSound(10, 10);
 
                         #ifdef GRAYSCALE_SONIFICATION
 
@@ -108,11 +103,7 @@ void lavSonifier::sonify(cv::Mat* mAbsDiffFrame) {
 
                         lavComputer::add_float_vector(&_float_grayscale_result[grayscale][idStartValue], &sound[idStartValue], nbValue);
 
-
                         _grayscale_pixelCounter[grayscale]+=1;
-
-                        //lavLog::LAVLOG("grayscale", grayscale);
-                        //lavLog::LAVLOG("counter", _grayscale_pixelCounter[grayscale]);
                         #else
                         lavComputer::add_float_vector(_float_audio_output, sound, SIZE_SOUND_IN_VALUE);
                         #endif
@@ -120,38 +111,9 @@ void lavSonifier::sonify(cv::Mat* mAbsDiffFrame) {
 						nbSonifiedPix +=1;
 					}
 					cptPixInCompression += 1;
-
 					if (cptPixInCompression == _sizeSimplificationChunk) {
 						cptPixInCompression = 0;
 					}
-                    //end if compression
-                    
-                    
-                    
-					//if no compression
-					/*
-					sound = lavSoundDatabase::getSound(ID_x, ID_y);				
-
-                    #ifdef GRAYSCALE_SONIFICATION
-                    lavComputer::add_float_vector(_float_grayscale_result[grayscale], sound, SIZE_SOUND_IN_VALUE);
-                    _grayscale_pixelCounter[grayscale]+=1;
-                    #else
-                    lavComputer::add_float_vector(_float_audio_output, sound, SIZE_SOUND_IN_VALUE);
-                    #endif
-
-					nbSonifiedPix +=1;
-                    */
-                    //end if no compression
-                    
-
-                    //hard compression (to avoid !!!!!!!!!!!!)
-					//if (nbSonifiedPix == 100) {
-					//	goto exit_loop;
-					//}
-                    //fin hard compression (to avoid !!!!!!!!!!!!)
-					
-
-					//lavComputer::add_int32_vector_with_neon3(_test_int32, _test_int32, _test_int32, SIZE_SOUND_IN_VALUE);
 				}
 			}
 		}
@@ -177,29 +139,10 @@ void lavSonifier::sonify(cv::Mat* mAbsDiffFrame) {
 
 		exit_loop:
 
-		//lavConstants::__stopTimeChecking("sonify");
-
-		//lavComputer::mul_float_vector_by_scalar(_float_audio_output, _float_audio_output, 100., SIZE_SOUND_IN_VALUE);
-
-		//lavConstants::__startTimeChecking(); //negligable
-
 		for (ID_t =0; ID_t<SIZE_SOUND_IN_VALUE; ++ID_t) {
 			_short_audio_output[ID_t] = (short) _float_audio_output[ID_t];
-
-            //to test
-			//_short_audio_output[ID_t] = _short_sound[ID_t];            
 		}
-
-		//lavConstants::__stopTimeChecking("sonify float to short");
-
-
-
-	}
-
-    //lavLog::LAVLOG("lavSonifier::push_buffer");
 	lavAudioMixer::push_buffer(_short_audio_output);
-	//lavAudioMixer::push_buffer(_short_sound);
-	//lavConstants::__stopTimeChecking("all");
 }
 
 

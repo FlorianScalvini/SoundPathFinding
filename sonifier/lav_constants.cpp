@@ -4,7 +4,7 @@ float lavConstants::__elapsed;
 float* lavConstants::_sigmoidal_fade_in = 0;
 float* lavConstants::_sigmoidal_fade_out = 0;
 
-float lavConstants::__maxNbSonifiedPixel = 100;//500;
+float lavConstants::__maxNbSonifiedPixel = 100; //500;
 int lavConstants::__cptcheck  = 0;
 int lavConstants::__nbTimeCheck  = 1;
 float* lavConstants::_buff_time = (float*) calloc(__nbTimeCheck, sizeof(float));

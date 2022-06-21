@@ -8,28 +8,27 @@ int Lav_path::state = NULL;
 unsigned int Lav_path::dst = NULL;
 PathFinding* Lav_path::path = nullptr;
 Graph* Lav_path::graph = nullptr;
-char* Lav_path::soundCheck = nullptr;
+std::vector<SoundReader> Lav_path::sounds;
+
 
 void Lav_path::init()
 {
     state = WAIT_DST;
     graph = new Graph("/home/florian/CLionProjects/SoundPathFinding/path/graph.txt");
     path = new PathFinding(graph);
+    sounds.emplace_back(SoundReader("/home/ubuntu/Bureau/HrtfConvo/person.wav", SIZE_AUDIO_CHUNK_IN_VALUE));
 }
 
-void Lav_path::emitSoundControl()
+void* Lav_path::emitSoundControl()
 {
-    WavHelpers* wavHelpers;
     if(state == CHECK_NEIGHBOR)
     {
-        wavHelpers = new WavHelpers("");
-        soundControl = new ;
+        sounds[0].isReading()
     }
 }
 
 void Lav_path::setDst(unsigned int dst) {
     Lav_path::dst = dst;
-
     state = CHECK_NEIGHBOR;
 }
 
@@ -39,4 +38,3 @@ void Lav_path::setFirstNode(unsigned int src)
     state =
 }
 
-void Lav_path::

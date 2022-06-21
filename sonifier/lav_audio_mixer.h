@@ -31,7 +31,7 @@
 #include "lav_log.h"
 #include "lav_constants.h"
 #include "lav_computer.h"
-#include "../sound/wav_helpers.h"
+#include "../sound/sound_wav.h"
 
 
 

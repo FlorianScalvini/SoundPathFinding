@@ -2,7 +2,7 @@
 #include "lav_wav.h"
 
 int lavWav::loadWav(float*** sound_db, char* filename) {
-    std::unique_ptr<WavHelpers> wavfile(new WavHelpers(filename));
+    std::unique_ptr<SoundWav> wavfile(new SoundWav(filename));
     if(!wavfile->readHeader())
     {
         printf("Unable to read the file's header");
