@@ -10,8 +10,8 @@
 
 class SoundReader {
 public:
-    explicit SoundReader(char* file, const int sizechunks);
-    void* pull_buffer();
+    explicit SoundReader(const char* file, const int sizechunks);
+    void* pull_buffer(bool reset= false);
     bool isReading();
 private:
     const int sizeAudioChunkSample;

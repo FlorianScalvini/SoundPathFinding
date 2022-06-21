@@ -16,6 +16,8 @@
 #include <alsa/asoundlib.h>
 
 #include "lav_log.h"
+#include "lav_path.h"
+
 #include "lav_audio_mixer.h"
 #include "lav_constants.h"
 

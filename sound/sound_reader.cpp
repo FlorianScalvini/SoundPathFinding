@@ -6,9 +6,9 @@
 
 
 
-SoundReader::SoundReader(char* file, const int sizechunks) : sizeAudioChunkSample(sizechunks)
+SoundReader::SoundReader(const char* file, const int sizechunks) : sizeAudioChunkSample(sizechunks)
 {
-    SoundWav soundWav(file);
+    SoundWav soundWav((char*)file);
     soundWav.readHeader();
     sizeData = soundWav.getSizeData();
     int numberChunks = ceil((sizeData) / sizechunks);
@@ -27,9 +27,13 @@ bool SoundReader::isReading()
         return false;
 }
 
-void *SoundReader::pull_buffer()
+void *SoundReader::pull_buffer(bool rst)
 {
     void* pointer_result = NULL;
+    if(rst)
+    {
+        currentChunkPtr = bufferSound;
+    }
     pointer_result = currentChunkPtr;
     if(currentChunkPtr == lastChunkPtr)
         currentChunkPtr = bufferSound;

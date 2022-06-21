@@ -122,17 +122,6 @@ void lavVideoProcessor::processFrame() {
     //finalMaskDepth = frameDifferencingMask+depthProximityAlarmMask;
     finalMaskDepth = frameDifferencingMask;
     cv::multiply(_inputMatScaled, finalMaskDepth, _outputMat);
-
-
-
-    //cv::threshold(_inputMat, _inputMatThreshold,254,0,cv::THRESH_TOZERO_INV);
-
-
-
-
-    /*//Sans Filtre
-    cv::resize(_inputMat, _outputMat, cv::Size(FRAME_WIDTH_SONIFIED, FRAME_HEIGHT_SONIFIED), 0, 0, 0);
-    */
 }
 
 #else
@@ -177,54 +166,6 @@ void lavVideoProcessor::acquireAndProcessFrame() {
     _colorProcessingReady = true;
     pthread_mutex_unlock(&_mutexColorProcessing);
     _inputMat = _capture->getNextFrame();
-
-/*
-    for(int j = 0; j < _inputMat.rows; j++)
-    {
-        for( int i = 0; i < _inputMat.cols; i++)
-        {
-            if(_inputMat.at<unsigned short>(j,i) == 0)
-            {
-                _inputMatScaled.at<unsigned char>(j,i) = 255;
-            }
-            else if(_inputMat.at<unsigned short>(j,i) > 5000 || _inputMat.at<unsigned short>(j,i) < 29)
-            {
-                _inputMatScaled.at<unsigned char>(j,i) = 0;
-            }
-            else
-            {
-                _inputMatScaled.at<unsigned char>(j,i) = (unsigned char)(255 - 0.051 * _inputMat.at<unsigned short>(j,i));
-            }
-        }
-    }
-
-    if (_firstFrame) {
-        _firstFrame = false;
-        _previousMat = _inputMatScaled.clone();
-        _outputMat = _inputMatScaled.clone();
-        _outputMatForDisplay = _inputMatScaled.clone();
-    }
-    if (! _silence) {
-        processFrame();
-    }
-    else {
-        _outputMat.setTo(cv::Scalar(0));
-    }
-
-    if (_firstFrame) {
-        _outputMat.setTo(cv::Scalar(0));
-    }
-
-
-     cv::imshow("COLOR THREAD", _inputMatColor);
-     cv::imshow("OUTPUT ", _outputMat);
-     _inputMatScaled.copyTo(_previousMat);
-     //_previousDetOutput = _detOutput;
-     cv::resize(_outputMat, _outputMat, cv::Size(FRAME_WIDTH_SONIFIED, FRAME_HEIGHT_SONIFIED), 0, 0, 0);
-
-     lavSonifier::sonify(&_outputMat);
-     cv::waitKey(1);
-    */
     while (!_colorProcessingDone) {
         usleep(500);
     }
@@ -284,23 +225,9 @@ void* lavVideoProcessor::start_video_stream(void* args) {
     pthread_create(&color_thread, nullptr, acquireAndProcessFrameColor, (void*)nullptr);
     while (! _close_video) {
 		acquireAndProcessFrame();
-        /*
-		//usleep(5000);
-        i++;
-        if(i%30 == 0)
-        {
-            auto t_end = std::chrono::high_resolution_clock::now();
-            double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end-t_start).count();
-            std::cout<<elapsed_time_ms / 30.0<<std::endl;
-            t_start = std::chrono::high_resolution_clock::now();
-            i = 0;
-        }*/
 	}
 	lavLog::LAVLOG("video_close\n");
-	//_pCam->closeAcquisition();
 	_capture->release();
-
-
 	return nullptr;
 }
 

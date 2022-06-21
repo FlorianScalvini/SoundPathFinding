@@ -1,10 +1,10 @@
 
 #include "lav_audio_stream.h"
-
+#include "lav_vocal.h"
 
 int lavAudioStream::_close_audio = 0;
 snd_pcm_t* lavAudioStream::playback_handle = 0;
-short* lavAudioStream::buf = (short*) calloc(256*2, sizeof(short));     
+short* lavAudioStream::buf = (short*) calloc(256*2, sizeof(short));
 
 
 void lavAudioStream::release()
@@ -171,13 +171,19 @@ void lavAudioStream::init()
     //lavLog::LAVLOG("exit lav_audio_stream_init\n");
 
 }
-
 void* lavAudioStream::play_audio_stream(void* arg) {
     int result = 0;
     int cptLoop = 0;
     while (1) {//period_size) {
         //result = snd_pcm_writei(playback_handle, buf, 256);
-        result = snd_pcm_writei(playback_handle, lavAudioMixer::pull_buffer(), 256);
+        if(!lavPath::isVoiceControl())
+        {
+            result = snd_pcm_writei(playback_handle, lavAudioMixer::pull_buffer(), 256);
+        }
+        else
+        {
+            result = snd_pcm_writei(playback_handle, lavVocal::pull_buffer(), 256);
+        }
         //usleep(4000);
         
         if (result<0) {

@@ -4,37 +4,61 @@
 
 #include "lav_path.h"
 
-int Lav_path::state = NULL;
-unsigned int Lav_path::dst = NULL;
-PathFinding* Lav_path::path = nullptr;
-Graph* Lav_path::graph = nullptr;
-std::vector<SoundReader> Lav_path::sounds;
+int lavPath::state = NULL;
+unsigned int lavPath::dst = NULL;
+PathFinding* lavPath::path = nullptr;
+Graph* lavPath::graph = nullptr;
+std::vector<SoundReader> lavPath::sounds;
+SoundReader* lavPath::sound = nullptr;
 
 
-void Lav_path::init()
+
+void lavPath::init()
 {
     state = WAIT_DST;
     graph = new Graph("/home/florian/CLionProjects/SoundPathFinding/path/graph.txt");
     path = new PathFinding(graph);
-    sounds.emplace_back(SoundReader("/home/ubuntu/Bureau/HrtfConvo/person.wav", SIZE_AUDIO_CHUNK_IN_VALUE));
 }
 
-void* Lav_path::emitSoundControl()
+bool lavPath::isVoiceControl()
 {
-    if(state == CHECK_NEIGHBOR)
-    {
-        sounds[0].isReading()
-    }
+    if(state != IN_TRANSIT && state != WAIT_USER)
+        return true;
+    else
+        return false;
 }
 
-void Lav_path::setDst(unsigned int dst) {
-    Lav_path::dst = dst;
+void lavPath::inTransit()
+{
+    lavSonifier::
+}
+
+
+
+void lavPath::process()
+{
+    if(LavVocal::isReading())
+    {
+        usleep(500);
+    }
+    if(state = IN_TRANSIT)
+    {
+
+    }
+    if(state != IN_TRANSIT && state != WAIT_USER)
+    {
+        state
+    }
+
+}
+
+void lavPath::setDst(unsigned int dst) {
+    lavPath::dst = dst;
     state = CHECK_NEIGHBOR;
 }
 
-void Lav_path::setFirstNode(unsigned int src)
+void lavPath::setFirstNode(unsigned int src)
 {
     path->newPath(src, dst);
     state =
 }
-
