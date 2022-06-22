@@ -21,22 +21,23 @@ SoundReader::SoundReader(const char* file, const int sizechunks) : sizeAudioChun
 
 bool SoundReader::isReading()
 {
-    if(currentChunkPtr == bufferSound)
+    if(currentChunkPtr != nullptr)
         return true;
     else
         return false;
 }
 
-void *SoundReader::pull_buffer(bool rst)
+void SoundReader::start()
+{
+    currentChunkPtr = bufferSound;
+}
+
+void *SoundReader::pull_buffer()
 {
     void* pointer_result = NULL;
-    if(rst)
-    {
-        currentChunkPtr = bufferSound;
-    }
     pointer_result = currentChunkPtr;
     if(currentChunkPtr == lastChunkPtr)
-        currentChunkPtr = bufferSound;
+        currentChunkPtr = nullptr;
     else
         currentChunkPtr += sizeAudioChunkSample;
     return pointer_result;

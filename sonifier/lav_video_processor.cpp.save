@@ -29,7 +29,7 @@ cv::Mat lavVideoProcessor::_outputMatForDisplay;
 
 cv::Mat lavVideoProcessor::_colorFrameForVideoRecording = cv::Mat(size, CV_8UC3);
 
-//lavVideoCapture* lavVideoProcessor::_capture =  new lavOpencvVideoFile("/home/maxime/data/boulot/recherche/lead/development/C++/sonifier/src/res/01_01_near.avi", 25);    
+//lavVideoCapture* lavVideoProcessor::_capture =  new lavOpencvVideoFile("/home/maxime/data/boulot/recherche/lead/development/C++/sonifier/utils/res/01_01_near.avi", 25);
 //lavVideoCapture* lavVideoProcessor::_capture =  new lavOpencvVideoFile("/home/maxime/data/boulot/recherche/lead/development/C++/sonifier/sonifier/res/stimuli_video/video/approach/01_01_coming.avi", 25);   
 //lavVideoCapture* lavVideoProcessor::_capture =  new lavOpencvVideoFile("/home/maxime/data/boulot/recherche/lead/development/C++/sonifier/sonifier/res/stimuli_video/video_depth/trajectory/09_09_far.avi", 25);   
 

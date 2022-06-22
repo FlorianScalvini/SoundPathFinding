@@ -33,6 +33,15 @@
 
 #ifdef PATH_MARKER
 #include "Stag.h"
+
+
+struct MarkerDetection
+{
+    int x_pixel;
+    int y_pixel;
+    int z_grayscale;
+    int label_i;
+};
 #endif
 
 
@@ -40,7 +49,6 @@
 class lavVideoProcessor {
 
     private:
-
         #ifdef OBJECT_DETECTION
         static std::map<unsigned int, std::vector<ObjectBoundingBox>> _detOutput ;
         static std::list<unsigned int> classes;
@@ -51,9 +59,6 @@ class lavVideoProcessor {
 
         static Detecteur* _detecteur;
         #endif
-
-
-
 
         static unsigned int _cptVideoFrame;
         static cv::Mat _inputMat;
@@ -81,6 +86,7 @@ class lavVideoProcessor {
 
         #ifdef PATH_MARKER
         static Stag stagDetector;
+
         #endif
 
         //static pthread_t thread_video_processing;

@@ -2,8 +2,8 @@
 // Created by ubuntu on 20/06/22.
 //
 
-#ifndef STAG_LAV_PATH_H
-#define STAG_LAV_PATH_H
+#ifndef STAG_LAV_MANAGER_H
+#define STAG_LAV_MANAGER_H
 
 #include "../sound/sound_reader.h"
 #include "../path/pathFinding.h"
@@ -16,25 +16,34 @@
 
 enum ENUM_STATE
 {
-    WAIT_DST = 0,
-    IN_TRANSIT = 1,
-    WAIT_USER = 2,
-    CHECK_NEIGHBOR = 3,
+    SCAN_ENV = 0,
+    WAIT_DST = 1,
+    NEAR_SPECIAL_TARGET = 2,
+    WAIT_USER = 3,
+    NEAR_TARGET = 4,
+    CHECK_NEIGHBOR = 5,
 };
 
-class lavPath {
+class lavManager {
 public:
     static void init();
     static void setDst(unsigned int dst);
     static void setFirstNode(unsigned int src);
     static bool isVoiceControl();
-    static void* pull_buffer();
 
-    static void* start_path_process(void* args);
-    static void start_thread_path_process() ;
+
+    static void waitDst();
+    static void inTransit();
+    static void nearSpecialTarget(int indice);
+    static void
+    static void process();
+    static void* start_path_manager(void* args);
+    static void start_thread_path_manager();
+
 
 private:
     static int state;
+    static unsigned int currentNode;
     static unsigned int dst;
     static PathFinding* path;
     static Graph* graph;
@@ -45,4 +54,4 @@ private:
 };
 
 
-#endif //STAG_LAV_PATH_H
+#endif //STAG_LAV_MANAGER_H

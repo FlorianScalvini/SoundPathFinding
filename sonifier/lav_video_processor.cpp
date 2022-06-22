@@ -159,7 +159,6 @@ void lavVideoProcessor::processFrame() {
 }
 #endif
 
-
 void lavVideoProcessor::acquireAndProcessFrame() {
 
     pthread_mutex_lock(&_mutexColorProcessing);
@@ -172,6 +171,7 @@ void lavVideoProcessor::acquireAndProcessFrame() {
     pthread_mutex_lock(&_mutexColorProcessing);
     _colorProcessingDone = false;
     _colorProcessingReady = true;
+    lavSonifier::sonify(&_outputMat);
     pthread_mutex_unlock(&_mutexColorProcessing);
 }
 
@@ -217,6 +217,7 @@ void* lavVideoProcessor::acquireAndProcessFrameColor(void *args)
     return nullptr;
 }
 #endif
+
 
 void* lavVideoProcessor::start_video_stream(void* args) {
 	//int i = 0;
