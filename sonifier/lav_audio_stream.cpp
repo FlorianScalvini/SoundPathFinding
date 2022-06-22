@@ -176,7 +176,7 @@ void* lavAudioStream::play_audio_stream(void* arg) {
     int cptLoop = 0;
     while (1) {//period_size) {
         //result = snd_pcm_writei(playback_handle, buf, 256);
-        if(!lavPath::isVoiceControl())
+        if(!lavManager::isVoiceControl())
         {
             result = snd_pcm_writei(playback_handle, lavAudioMixer::pull_buffer(), 256);
         }

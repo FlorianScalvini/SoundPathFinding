@@ -48,21 +48,21 @@ class SoundWav{
 public:
     SoundWav(char * filename);
     SoundWav(){};
+    ~SoundWav();
     static int writeStandardWavFile(const char* filename, char* format, char* data, unsigned int nbByte);
     void closeWavFile();
     int addByteToWave(char* data, unsigned int nbByte);
     int createWavFile(char* databasePath);
     int readHeader();
-
-    template<typename T>
-    void readData(T *data, int nb_item);
-
+    template <typename T> void readData(T data, int nb_item);
     int getSizeData();
     int getSizeHeader();
+    int getNbChannel();
     Wav_header* getHeader();
+
     FILE *_wav_file;
 private:
-    Wav_header header;
+    Wav_header header{};
     char * filename;
     int sizeHeader;
 

@@ -53,6 +53,10 @@ Graph::Graph(const char * path)
     }
 }
 
+Graph::~Graph()
+{
+}
+
 Node* Graph::getNode(unsigned int indice)
 {
     if(this->nodes.find(indice) != this->nodes.end())

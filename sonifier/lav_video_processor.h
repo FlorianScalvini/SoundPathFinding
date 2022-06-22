@@ -7,7 +7,7 @@
 #include <opencv2/highgui/highgui.hpp>
 //#include <opencv2/ocl/ocl.hpp>
 #include "Drawer.h"
-
+#include "lav_manager.h"
 
 //#include <android_native_app_glue.h>
 
@@ -47,7 +47,7 @@ struct MarkerDetection
 
 
 class lavVideoProcessor {
-
+public:
     private:
         #ifdef OBJECT_DETECTION
         static std::map<unsigned int, std::vector<ObjectBoundingBox>> _detOutput ;
@@ -124,7 +124,7 @@ class lavVideoProcessor {
 	    static void* start_video_stream(void* args);
         static void* acquireAndProcessFrameColor(void *args);
 	    static void start_thread_video_stream();
-
+        static void getNextProcesing();
         static bool _colorProcessingDone;
         static cv::Mat _inputMatColor;
 };

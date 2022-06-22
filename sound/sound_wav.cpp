@@ -6,8 +6,14 @@
 
 SoundWav::SoundWav(char *filepath) : filename(filepath)
 {
+    sizeData = -1;
+    sizeHeader = -1;
     _wav_file = nullptr;
+    this->header.num_channels = 0;
 }
+
+SoundWav::~SoundWav() = default;
+
 
 int SoundWav::getSizeData(){
     this->sizeData;
@@ -15,6 +21,10 @@ int SoundWav::getSizeData(){
 
 int SoundWav::getSizeHeader(){
     this->sizeHeader;
+}
+
+int SoundWav::getNbChannel() {
+    this->header.num_channels;
 }
 
 int SoundWav::readHeader()
@@ -141,8 +151,8 @@ Wav_header* SoundWav::getHeader()
     return &header;
 }
 
-template<typename T>
-void SoundWav::readData(T* data, int nbItem) {
+template <typename T>
+void SoundWav::readData(T data, int nbItem) {
     if(_wav_file == nullptr)
         fclose(_wav_file);
     _wav_file = fopen(filename, "rb");
@@ -172,6 +182,8 @@ void SoundWav::readData(T* data, int nbItem) {
     fclose(_wav_file);
 }
 
+template void SoundWav::readData<short*>(short*, int);
+template void SoundWav::readData<float*>(float*, int);
 
 int SoundWav::createWavFile(char *databasePath)
 {
@@ -209,7 +221,7 @@ int SoundWav::createWavFile(char *databasePath)
     fseek(_wav_file, sizeof(struct Wav_header), SEEK_SET);
 }
 
-void WavHelpers::closeWavFile() {
+void SoundWav::closeWavFile() {
     if(_wav_file == nullptr)
     {
         printf("The file is already closed");
@@ -221,7 +233,7 @@ void WavHelpers::closeWavFile() {
     fclose(_wav_file);
 }
 
-int WavHelpers::addByteToWave(char* data, unsigned int nbByte) {
+int SoundWav::addByteToWave(char* data, unsigned int nbByte) {
     if(_wav_file == nullptr)
     {
         printf("The file is already closed");
@@ -233,3 +245,4 @@ int WavHelpers::addByteToWave(char* data, unsigned int nbByte) {
     sizeData += (unsigned int)(nbByte/8);
     return 1;
 }
+

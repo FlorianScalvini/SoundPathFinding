@@ -29,6 +29,7 @@ class Graph {
 public:
     explicit Graph(std::vector<int> listId);
     explicit Graph(const char * path);
+    ~Graph();
     Node* getNode(unsigned int indice);
     void addLink(unsigned int src, int dst);
     void showGraph();

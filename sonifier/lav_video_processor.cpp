@@ -159,41 +159,22 @@ void lavVideoProcessor::processFrame() {
 }
 #endif
 
+
+
+
 void lavVideoProcessor::acquireAndProcessFrame() {
 
-    pthread_mutex_lock(&_mutexColorProcessing);
-    _colorProcessingReady = true;
-    pthread_mutex_unlock(&_mutexColorProcessing);
+    cv::Mat img = cv::Mat(sizeColor, CV_8UC1);
+    _inputMatColor = _capture->getNextFrameColor();
     _inputMat = _capture->getNextFrame();
-    while (!_colorProcessingDone) {
-        usleep(500);
-    }
-    pthread_mutex_lock(&_mutexColorProcessing);
-    _colorProcessingDone = false;
-    _colorProcessingReady = true;
+    cv::cvtColor(_inputMatColor, img, cv::COLOR_BGR2GRAY);
+    stagDetector.detectMarkers(img);
     lavSonifier::sonify(&_outputMat);
-    pthread_mutex_unlock(&_mutexColorProcessing);
 }
 
 #ifdef PATH_MARKER
 void* lavVideoProcessor::acquireAndProcessFrameColor(void *args)
 {
-    cv::Mat img = cv::Mat(sizeColor, CV_8UC1);
-    while(!_close_video)
-    {
-        while (!_colorProcessingReady) {
-            usleep(500);
-        }
-        pthread_mutex_lock(&_mutexColorProcessing);
-        _colorProcessingReady = false;
-        pthread_mutex_unlock(&_mutexColorProcessing);
-        _inputMatColor = _capture->getNextFrameColor();
-        cv::cvtColor(_inputMatColor, img, cv::COLOR_BGR2GRAY);
-        stagDetector.detectMarkers(img);
-        pthread_mutex_lock(&_mutexColorProcessing);
-        _colorProcessingDone = true;
-        pthread_mutex_unlock(&_mutexColorProcessing);
-    }
     return nullptr;
 }
 #else
@@ -221,9 +202,7 @@ void* lavVideoProcessor::acquireAndProcessFrameColor(void *args)
 
 void* lavVideoProcessor::start_video_stream(void* args) {
 	//int i = 0;
-    //auto t_start = std::chrono::high_resolution_clock::now();
-    pthread_t color_thread;
-    pthread_create(&color_thread, nullptr, acquireAndProcessFrameColor, (void*)nullptr);
+    //auto t_start = std::chrono::high_resolution_clock::now();;
     while (! _close_video) {
 		acquireAndProcessFrame();
 	}

@@ -10,10 +10,6 @@
 #include <vector>
 #include <map>
 
-std::map<unsigned int, const char* > soundFile =     {
-        { 0, "/home/ubuntu/Bureau/HrtfConvo/person.wav" },
-        { 1, "/home/ubuntu/Bureau/HrtfConvo/person.wav" },
-};
 
 
 

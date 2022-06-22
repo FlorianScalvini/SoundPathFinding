@@ -3,6 +3,10 @@
 //
 
 #include "lav_manager.h"
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+
 
 int lavManager::state = NULL;
 unsigned int lavManager::dst = NULL;
@@ -11,6 +15,7 @@ Graph* lavManager::graph = nullptr;
 std::vector<SoundReader> lavManager::sounds;
 SoundReader* lavManager::sound = nullptr;
 unsigned int lavManager::currentNode;
+bool lavManager::close_thread;
 
 void lavManager::init()
 {
@@ -28,24 +33,71 @@ bool lavManager::isVoiceControl()
         return false;
 }
 
-void lavManager::nearSpecialTarget(int indice)
+void lavManager::nearSpecialTarget()
 {
+    lavVocal::push_buffer(-1);
+    usleep(100000);
+}
 
+void lavManager::nearTarget()
+{
+    path->update();
+    if(currentNode == dst)
+    {
+        lavVocal::push_buffer(3);
+        state = WAIT_DST;
+    }
+    else{
+        lavVocal::push_buffer(1);
+        state = SCAN_ENV;
+    }
+
+}
+
+void lavManager::scanEnv() {
+    std::vector<MarkerDetection> markers;
+    MarkerDetection* mrk = nullptr;
+    for(auto marker: markers)
+    {
+        if(path->changeToClosestNode(marker.label_i))
+        {
+            mrk = &marker;
+        }
+    }
+    if(mrk!= nullptr)
+    {
+        state = IN_TRANSIT;
+    }
 }
 
 void lavManager::inTransit()
 {
+    cv::Mat output = cv::Mat(cv::Size(COLOR_FRAME_WIDTH, COLOR_FRAME_HEIGHT), CV_8UC1);
+    output.setTo(cv::Scalar(0));
+    std::vector<MarkerDetection> markers;
+    MarkerDetection* mrk = nullptr;
+    for(auto marker: markers)
+    {
+        if(path->changeToClosestNode(marker.label_i))
+        {
+            mrk = &marker;
+        }
+    }
+    if(mrk != nullptr)
+    {
+        for(int x = mrk->x_pixel - 7; x < mrk->x_pixel + 7; x++)
+        {
+            for(int y = mrk->y_pixel - 7; y < mrk->y_pixel + 7; y++)
+            {
+                if(x >= 0 && y >= 0 && x < COLOR_FRAME_WIDTH && y < COLOR_FRAME_WIDTH)
+                    output.at<unsigned char>(y, x);
+            }
+        }
+    }
+    cv::resize(output, output, cv::Size(FRAME_WIDTH_SONIFIED, FRAME_HEIGHT_SONIFIED), 0, 0, 0);
     lavSonifier::sonify(nullptr);
 }
 
-bool isNumber(const std::string& s)
-{
-    for (char const &ch : s) {
-        if (std::isdigit(ch) == 0)
-            return false;
-    }
-    return true;
-}
 
 void lavManager::process()
 {
@@ -60,15 +112,15 @@ void lavManager::process()
         case IN_TRANSIT:
             inTransit();
             break;
-        case NEAR_SPECIAL_TARGET:
-            nearSpecialTarget();
+        case NEAR_TARGET:
+            nearTarget();
             break;
         case SCAN_ENV:
-
+            scanEnv();
             break;
         default:
             return;
-    };
+    }
 }
 
 void lavManager::waitDst()
@@ -76,11 +128,12 @@ void lavManager::waitDst()
     lavVocal::push_buffer(0);
     std::string char_dst;
     std::getline(std::cin, char_dst);
-    if(isNumber(char_dst))
+    // If the string is a number
+    if(std::all_of(char_dst.begin(), char_dst.end(), [](const char i){return std::isdigit(i);}))
     {
         lavManager::setDst(std::stoi(char_dst));
-        path->newPath(currentNode, dst);
-        state = IN_TRANSIT;
+        if(path->newPath(currentNode, dst));
+            state = IN_TRANSIT;
     }
     else
         usleep(100000);
@@ -93,15 +146,19 @@ void lavManager::setDst(unsigned int dst) {
 
 
 void* lavManager::start_path_manager(void* args) {
-    while (1) {
+    while (!close_thread) {
         lavManager::process();
     }
     return nullptr;
 }
 
+void lavManager::release()
+{
+    close_thread = true;
+}
 
 void lavManager::start_thread_path_manager() {
-    //usleep(10000);
+    close_thread = false;
     pthread_t thread_video_processing;
     pthread_create(&thread_video_processing, nullptr, start_path_manager, (void*)nullptr);
 }

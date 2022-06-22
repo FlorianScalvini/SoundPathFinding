@@ -11,11 +11,22 @@ SoundReader::SoundReader(const char* file, const int sizechunks) : sizeAudioChun
     SoundWav soundWav((char*)file);
     soundWav.readHeader();
     sizeData = soundWav.getSizeData();
+    if(soundWav.getNbChannel() != 1)
+    {
+        printf("Error, the file %s is not a monophonic sound");
+        return;
+    }
     int numberChunks = ceil((sizeData) / sizechunks);
-    bufferSound = new short [numberChunks*sizechunks];
+    bufferSound = new short [numberChunks * 2 * sizechunks];
+    auto* tempArray = new float [numberChunks * sizechunks];
     memset(bufferSound, 0, numberChunks*sizechunks*sizeof(float));
     lastChunkPtr =  bufferSound + sizechunks * (numberChunks - 1);
-    soundWav.readData(bufferSound, sizeData);
+    soundWav.readData(tempArray, sizeData);
+    for(int i = 0; i < numberChunks * sizechunks; i++)
+    {
+        bufferSound[2*i] = (short)tempArray[i];
+        bufferSound[2*i+1] = (short)tempArray[i];
+    }
     this->currentChunkPtr = bufferSound;
 }
 
@@ -43,3 +54,7 @@ void *SoundReader::pull_buffer()
     return pointer_result;
 }
 
+SoundReader::~SoundReader()
+{
+    delete[] bufferSound;
+}

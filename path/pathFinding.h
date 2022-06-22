@@ -14,7 +14,7 @@ public:
     int newPath(unsigned int src, unsigned int dst);
     Node* update();
     Node* getCurrentNode();
-    bool changeCurrentNodeTo(unsigned int label);
+    bool changeToClosestNode(unsigned int label);
 
 private:
     std::vector<unsigned int> markerList;

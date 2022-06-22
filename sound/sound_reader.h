@@ -11,6 +11,7 @@
 class SoundReader {
 public:
     explicit SoundReader(const char* file, const int sizechunks);
+    ~SoundReader();
     void* pull_buffer();
     void start();
     bool isReading();

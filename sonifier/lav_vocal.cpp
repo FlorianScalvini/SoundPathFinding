@@ -4,6 +4,12 @@
 
 #include "lav_vocal.h"
 
+
+static std::map<unsigned int, const char* > soundFile =     {
+        { 0, "/home/ubuntu/Bureau/HrtfConvo/person.wav" },
+        { 1, "/home/ubuntu/Bureau/HrtfConvo/person.wav" },
+};
+
 std::map<unsigned int, SoundReader> lavVocal::sounds;
 SoundReader* lavVocal::sound = nullptr;
 pthread_mutex_t lavVocal::_sound_mutex = PTHREAD_MUTEX_INITIALIZER;

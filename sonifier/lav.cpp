@@ -10,6 +10,7 @@ void lav::start() {
 	lavAudioStream::init();
 	lavSonifier::init();
 	lavAudioMixer::init();
+    lavManager::init();
     //lavAudioMixer::record_output("./res/hrtf_cut020_180H_90V/audio/trajectory/09_09_far.wav", 5000);
     lavLog::LAVLOG("lav init finished\n");
     //lavVideoProcessor::start_video_stream(NULL);
@@ -20,13 +21,17 @@ void lav::start() {
     lavVideoProcessor::start_thread_video_stream();
 
     lavLog::LAVLOG("lavAudioStream::start_thread_audio_stream\n");
-    lavAudioStream::start_thread_audio_stream();    
+    lavAudioStream::start_thread_audio_stream();
 
-    
+    lavLog::LAVLOG("lavAudioStream::start_thread_audio_stream\n");
+    lavManager::start_thread_path_manager();
+
+
 }
 
 void lav::stop() {
     lavLog::LAVLOG("lav::stop() !!!!!!!!!!\n");
+    lavManager::release();
 	lavAudioStream::release();
 	lavVideoProcessor::release();
 }

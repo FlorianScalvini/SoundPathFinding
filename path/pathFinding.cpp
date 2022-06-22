@@ -70,12 +70,11 @@ int PathFinding::newPath(unsigned int src, unsigned int dst)
         return 0;
 }
 
-
-bool PathFinding::changeCurrentNodeTo(unsigned int label)
+bool PathFinding::changeToClosestNode(unsigned int label)
 {
     bool result = false;
     unsigned int i = currPosition;
-    while(i < markerList.size())
+    while(i <= markerList.size())
     {
         if(label == markerList[i])
         {
@@ -85,7 +84,6 @@ bool PathFinding::changeCurrentNodeTo(unsigned int label)
         }
         i++;
     }
-
     return result;
 }
 

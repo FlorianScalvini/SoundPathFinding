@@ -23,102 +23,140 @@ int* lavSonifier::_nbValueModulation = 0;
 
 void lavSonifier::computeCompressionFactor(int nbActivePixel) {
 
-	float nbTotalKeptActivePixel = lavConstants::__maxNbSonifiedPixel*(1-lavConstants::__maxNbSonifiedPixel/((float)nbActivePixel+lavConstants::__maxNbSonifiedPixel));
+    float nbTotalKeptActivePixel = lavConstants::__maxNbSonifiedPixel*(1-lavConstants::__maxNbSonifiedPixel/((float)nbActivePixel+lavConstants::__maxNbSonifiedPixel));
 
-	//float nbKeptHotPixel = 500*(1-500/((float)nbHotPix+500));
-	float ratio = nbTotalKeptActivePixel/ (float)nbActivePixel;
+    //float nbKeptHotPixel = 500*(1-500/((float)nbHotPix+500));
+    float ratio = nbTotalKeptActivePixel/ (float)nbActivePixel;
 
-	_sizeSimplificationChunk = 64;
+    _sizeSimplificationChunk = 64;
 
-	if (ratio>1./20) {
-		_nbKeptPixInSimplificationChunk = (int) ((ratio*(float) _sizeSimplificationChunk)+0.5);
-	}
-	else {
-		_sizeSimplificationChunk =  (int) (1./ratio);
-		_nbKeptPixInSimplificationChunk = 1;
-	}
+    if (ratio>1./20) {
+        _nbKeptPixInSimplificationChunk = (int) ((ratio*(float) _sizeSimplificationChunk)+0.5);
+    }
+    else {
+        _sizeSimplificationChunk =  (int) (1./ratio);
+        _nbKeptPixInSimplificationChunk = 1;
+    }
 
 
-	/*if (ratio>(float)0.5) {
-		_totalNbSimplification = (int) ((float)1/((float)1-ratio)+0.5);
-		_maxNbUsedSimplification = _totalNbSimplification-1;
-	}
-	else {
-		_maxNbUsedSimplification= 1;
-		_totalNbSimplification = (int) ((float)1/ratio +0.5);
-	}*/
+    /*if (ratio>(float)0.5) {
+        _totalNbSimplification = (int) ((float)1/((float)1-ratio)+0.5);
+        _maxNbUsedSimplification = _totalNbSimplification-1;
+    }
+    else {
+        _maxNbUsedSimplification= 1;
+        _totalNbSimplification = (int) ((float)1/ratio +0.5);
+    }*/
 }
 
 void lavSonifier::sonify(cv::Mat* mAbsDiffFrame) {
 
-	//unrolled 01-01 01:27:44.440: I/lav_native(4458): sonify: 3567, 3080, 4877, 3018, 11683
-	//normal   01-01 01:37:29.950: I/lav_native(4576): sonify: 3564, 3206, 5126, 1761, 12144
+    //unrolled 01-01 01:27:44.440: I/lav_native(4458): sonify: 3567, 3080, 4877, 3018, 11683
+    //normal   01-01 01:37:29.950: I/lav_native(4576): sonify: 3564, 3206, 5126, 1761, 12144
 
 
 
-	cv::Mat inputMat = (*mAbsDiffFrame);
-	int nbActivePixel = countNonZero(inputMat);
+    cv::Mat inputMat = (*mAbsDiffFrame);
+    int nbActivePixel = countNonZero(inputMat);
     int grayscale = 0;
 
-	//LOGI("nbActivePixel = %d\n", nbActivePixel);
+    //LOGI("nbActivePixel = %d\n", nbActivePixel);
 
-	memset(_float_audio_output, 0, SIZE_SOUND_IN_VALUE*sizeof(float));
-	memset(_short_audio_output, 0, SIZE_SOUND_IN_VALUE*sizeof(short));
+    memset(_float_audio_output, 0, SIZE_SOUND_IN_VALUE*sizeof(float));
+    memset(_short_audio_output, 0, SIZE_SOUND_IN_VALUE*sizeof(short));
 
-    #ifdef GRAYSCALE_SONIFICATION    
+#ifdef GRAYSCALE_SONIFICATION
     memset(_grayscale_pixelCounter, 0, 256*sizeof(int));
     for (int idGrayscale =0; idGrayscale<256; ++idGrayscale) {
-	    memset(_float_grayscale_result[idGrayscale], 0, SIZE_SOUND_IN_VALUE*sizeof(float));
+        memset(_float_grayscale_result[idGrayscale], 0, SIZE_SOUND_IN_VALUE*sizeof(float));
     }
-    #endif
+#endif
 
 
-	if (nbActivePixel>0) {
+    if (nbActivePixel>0) {
 
-		computeCompressionFactor(nbActivePixel);
+        computeCompressionFactor(nbActivePixel);
 
-		int cptPixInCompression = 0;
-		int nbSonifiedPix = 0;
-		float* sound = NULL;
-		unsigned int ID_y,ID_x, ID_t;
-		uchar* p;
-		for( ID_y = 0; ID_y < FRAME_HEIGHT_SONIFIED; ++ID_y)
-		{
-			p = inputMat.ptr<uchar>(ID_y);
-			for ( ID_x = 0; ID_x < FRAME_WIDTH_SONIFIED; ++ID_x)
-			{
+        int cptPixInCompression = 0;
+        int nbSonifiedPix = 0;
+        float* sound = NULL;
+
+        unsigned int ID_y,ID_x, ID_t;
+        uchar* p;
+
+        //lavConstants::__startTimeChecking();
+
+        for( ID_y = 0; ID_y < FRAME_HEIGHT_SONIFIED; ++ID_y)
+        {
+            p = inputMat.ptr<uchar>(ID_y);
+            for ( ID_x = 0; ID_x < FRAME_WIDTH_SONIFIED; ++ID_x)
+            {
                 grayscale = p[ID_x];
 
-				if (grayscale >0)  {
+                if (grayscale >0)  {
 
-                    
-					//if compression                    
-					if ((cptPixInCompression < _nbKeptPixInSimplificationChunk)) {
-						sound = lavSoundDatabase::getSound(ID_x, ID_y);
 
-                        #ifdef GRAYSCALE_SONIFICATION
+                    //if compression
+                    if ((cptPixInCompression < _nbKeptPixInSimplificationChunk)) {
+                        sound = lavSoundDatabase::getSound(ID_x, ID_y);
+                        //sound = lavSoundDatabase::getSound(10, 10);
+
+#ifdef GRAYSCALE_SONIFICATION
 
                         int idStartValue = _startValueModulation[grayscale];
                         int nbValue = _nbValueModulation[grayscale];
 
                         lavComputer::add_float_vector(&_float_grayscale_result[grayscale][idStartValue], &sound[idStartValue], nbValue);
 
+
                         _grayscale_pixelCounter[grayscale]+=1;
-                        #else
+
+                        //lavLog::LAVLOG("grayscale", grayscale);
+                        //lavLog::LAVLOG("counter", _grayscale_pixelCounter[grayscale]);
+#else
                         lavComputer::add_float_vector(_float_audio_output, sound, SIZE_SOUND_IN_VALUE);
-                        #endif
+#endif
 
-						nbSonifiedPix +=1;
-					}
-					cptPixInCompression += 1;
-					if (cptPixInCompression == _sizeSimplificationChunk) {
-						cptPixInCompression = 0;
-					}
-				}
-			}
-		}
+                        nbSonifiedPix +=1;
+                    }
+                    cptPixInCompression += 1;
 
-        #ifdef GRAYSCALE_SONIFICATION
+                    if (cptPixInCompression == _sizeSimplificationChunk) {
+                        cptPixInCompression = 0;
+                    }
+                    //end if compression
+
+
+
+                    //if no compression
+                    /*
+                    sound = lavSoundDatabase::getSound(ID_x, ID_y);
+
+                    #ifdef GRAYSCALE_SONIFICATION
+                    lavComputer::add_float_vector(_float_grayscale_result[grayscale], sound, SIZE_SOUND_IN_VALUE);
+                    _grayscale_pixelCounter[grayscale]+=1;
+                    #else
+                    lavComputer::add_float_vector(_float_audio_output, sound, SIZE_SOUND_IN_VALUE);
+                    #endif
+
+                    nbSonifiedPix +=1;
+                    */
+                    //end if no compression
+
+
+                    //hard compression (to avoid !!!!!!!!!!!!)
+                    //if (nbSonifiedPix == 100) {
+                    //	goto exit_loop;
+                    //}
+                    //fin hard compression (to avoid !!!!!!!!!!!!)
+
+
+                    //lavComputer::add_int32_vector_with_neon3(_test_int32, _test_int32, _test_int32, SIZE_SOUND_IN_VALUE);
+                }
+            }
+        }
+
+#ifdef GRAYSCALE_SONIFICATION
         int startValueModulation =0;
         int nbValueModulation =0;
 
@@ -135,47 +173,66 @@ void lavSonifier::sonify(cv::Mat* mAbsDiffFrame) {
                 lavComputer::add_float_vector(&_float_audio_output[startValueModulation], &_float_grayscale_result[idGrayscale][startValueModulation], nbValueModulation);
             }
         }
-        #endif
+#endif
 
-		exit_loop:
+        exit_loop:
 
-		for (ID_t =0; ID_t<SIZE_SOUND_IN_VALUE; ++ID_t) {
-			_short_audio_output[ID_t] = (short) _float_audio_output[ID_t];
-		}
-	lavAudioMixer::push_buffer(_short_audio_output);
+        //lavConstants::__stopTimeChecking("sonify");
+
+        //lavComputer::mul_float_vector_by_scalar(_float_audio_output, _float_audio_output, 100., SIZE_SOUND_IN_VALUE);
+
+        //lavConstants::__startTimeChecking(); //negligable
+
+        for (ID_t =0; ID_t<SIZE_SOUND_IN_VALUE; ++ID_t) {
+            _short_audio_output[ID_t] = (short) _float_audio_output[ID_t];
+
+            //to test
+            //_short_audio_output[ID_t] = _short_sound[ID_t];
+        }
+
+        //lavConstants::__stopTimeChecking("sonify float to short");
+
+
+
+    }
+
+    //lavLog::LAVLOG("lavSonifier::push_buffer");
+    lavAudioMixer::push_buffer(_short_audio_output);
+    //lavAudioMixer::push_buffer(_short_sound);
+    //lavConstants::__stopTimeChecking("all");
 }
 
 
 void lavSonifier::init() {
 
     _sizeSimplificationChunk = 0;
-	_nbKeptPixInSimplificationChunk =0;
+    _nbKeptPixInSimplificationChunk =0;
 
-	_short_sound = (short*) calloc(SIZE_SOUND_IN_BYTE, sizeof(char));
-	_short_silence = (short*) calloc(SIZE_SOUND_IN_BYTE, sizeof(char));
+    _short_sound = (short*) calloc(SIZE_SOUND_IN_BYTE, sizeof(char));
+    _short_silence = (short*) calloc(SIZE_SOUND_IN_BYTE, sizeof(char));
 
-	_test_int32 = (int32_t*) calloc(SIZE_SOUND_IN_VALUE, sizeof(int32_t));
+    _test_int32 = (int32_t*) calloc(SIZE_SOUND_IN_VALUE, sizeof(int32_t));
 
-	float time = 0.;
-	for (int ID_t =0; ID_t<SIZE_SOUND_IN_VALUE; ID_t+=2) {
-		_short_sound[ID_t] = _short_sound[ID_t+1] = 10000*sin(2.*PI*440*time);
-		time += 1/44100.;
-	}
+    float time = 0.;
+    for (int ID_t =0; ID_t<SIZE_SOUND_IN_VALUE; ID_t+=2) {
+        _short_sound[ID_t] = _short_sound[ID_t+1] = 10000*sin(2.*PI*440*time);
+        time += 1/44100.;
+    }
 
-	_short_audio_output = (short*) calloc(SIZE_SOUND_IN_VALUE, sizeof(short));
-	_float_audio_output = (float*) calloc(SIZE_SOUND_IN_VALUE, sizeof(float));
+    _short_audio_output = (short*) calloc(SIZE_SOUND_IN_VALUE, sizeof(short));
+    _float_audio_output = (float*) calloc(SIZE_SOUND_IN_VALUE, sizeof(float));
 
-    #ifdef GRAYSCALE_SONIFICATION
+#ifdef GRAYSCALE_SONIFICATION
     _float_grayscale_result = (float**) calloc(256, sizeof(float*));
     _float_grayscale_modulation  = (float**) calloc(256, sizeof(float*));
     _grayscale_pixelCounter = (int*) calloc(256, sizeof(int));
     _startValueModulation = (int*) calloc(256, sizeof(int));
     _nbValueModulation = (int*) calloc(256, sizeof(int));
 
-	for (int idGrayscale =0; idGrayscale<256; ++idGrayscale) {
-		_float_grayscale_result[idGrayscale] = (float*) calloc(SIZE_SOUND_IN_VALUE, sizeof(float));
+    for (int idGrayscale =0; idGrayscale<256; ++idGrayscale) {
+        _float_grayscale_result[idGrayscale] = (float*) calloc(SIZE_SOUND_IN_VALUE, sizeof(float));
         _float_grayscale_modulation[idGrayscale] = (float*) calloc(SIZE_SOUND_IN_VALUE, sizeof(float));
-	}
+    }
 
 
     float maxGrayScale = 255.;
@@ -190,7 +247,7 @@ void lavSonifier::init() {
     float alphaPeriod = 5.;
     float alphaMaxValue = 1.5;
 
-	for (int idGrayscale =0; idGrayscale<256; ++idGrayscale) {
+    for (int idGrayscale =0; idGrayscale<256; ++idGrayscale) {
 
         float normGrayScale = ((float)idGrayscale-minGrayScale)/maxAmplitudeGrayScale;
 
@@ -204,7 +261,7 @@ void lavSonifier::init() {
 
             float phase = PI-(2.*PI*midTime/period);
 
-            
+
             int nbSampleInOnePeriod = (int) (period*44100.);
 
             int startIDSampleModulation = 0;
@@ -232,19 +289,17 @@ void lavSonifier::init() {
             int ID_value = 0;
             float value = 0;
 
-	        for (int ID_sample =0; ID_sample<SIZE_SOUND_IN_SAMPLE; ++ID_sample) {
+            for (int ID_sample =0; ID_sample<SIZE_SOUND_IN_SAMPLE; ++ID_sample) {
                 ID_value = ID_sample*2;
                 value = maxValue*(1-cos(2*PI*time/period+phase))/2;
-		        _float_grayscale_modulation[idGrayscale][ID_value] = value;
+                _float_grayscale_modulation[idGrayscale][ID_value] = value;
                 _float_grayscale_modulation[idGrayscale][ID_value+1] = value;
-                
-                time += gapTime;		    
-	        }
+
+                time += gapTime;
+            }
         }
 
     }
-    #endif
+#endif
 
 }
-
-

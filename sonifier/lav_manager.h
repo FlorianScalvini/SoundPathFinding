@@ -11,16 +11,18 @@
 #include "lav_vocal.h"
 #include "lav_sonifier.h"
 #include "lav_constants.h"
-#include <vector>
 
+#include "lav_video_processor.h"
+
+#include <vector>
 
 enum ENUM_STATE
 {
     SCAN_ENV = 0,
     WAIT_DST = 1,
-    NEAR_SPECIAL_TARGET = 2,
+    NEAR_TARGET = 2,
     WAIT_USER = 3,
-    NEAR_TARGET = 4,
+    IN_TRANSIT = 4,
     CHECK_NEIGHBOR = 5,
 };
 
@@ -34,14 +36,16 @@ public:
 
     static void waitDst();
     static void inTransit();
-    static void nearSpecialTarget(int indice);
-    static void
+    static void nearSpecialTarget();
+    static void scanEnv();
+    static void nearTarget();
     static void process();
     static void* start_path_manager(void* args);
     static void start_thread_path_manager();
-
+    static void release();
 
 private:
+    static bool close_thread;
     static int state;
     static unsigned int currentNode;
     static unsigned int dst;
