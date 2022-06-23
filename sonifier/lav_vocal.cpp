@@ -6,33 +6,27 @@
 
 
 
-std::vector<SoundReader*> lavVocal::sounds;
+std::vector<SoundReader> lavVocal::sounds;
 SoundReader* lavVocal::sound = nullptr;
 pthread_mutex_t lavVocal::_sound_mutex = PTHREAD_MUTEX_INITIALIZER;
 short* lavVocal::emptyBuffer;
 int lavVocal::idx;
 void lavVocal::init()
 {
-    sounds = std::vector<SoundReader*>();
+    sounds = std::vector<SoundReader>();
     sounds.clear();
-    std::vector<const char* > soundFile =     {
-            { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
-            { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
-            { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
-            { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
-            { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
-            { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
-            { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" }
+    std::vector<char* > soundFile =     {
+            { "/home/florian/CLionProjects/SoundPathFinding/person44100.wav" },
+            { "/home/florian/CLionProjects/SoundPathFinding/Person44100.wav" }
     };
-    idx = -1;
     for(int i = 0; i < soundFile.size(); i++)
     {
-        printf("Add sound from %s file at the index %i\n", soundFile[i], i );
-        SoundReader newSound = SoundReader(soundFile[i], SIZE_AUDIO_CHUNK_IN_SAMPLE);
-        sounds.push_back(&newSound);
-        //sounds.push_back(&newSound);
+        SoundReader newSound = SoundReader();
+        newSound.init(soundFile[0], SIZE_AUDIO_CHUNK_IN_SAMPLE);
+        sounds.emplace_back(newSound);
     }
 
+    idx = -1;
     emptyBuffer = new short[SIZE_AUDIO_CHUNK_IN_VALUE];
     sound = nullptr;
 };
@@ -41,7 +35,7 @@ void lavVocal::push_buffer(unsigned int indice)
 {
     idx = indice;
     pthread_mutex_lock(&_sound_mutex);
-    sound = sounds.at(indice);
+    //sound = sounds.at(indice);
     pthread_mutex_unlock(&_sound_mutex);
 }
 
@@ -69,3 +63,4 @@ void* lavVocal::pull_buffer()
     }
     return return_pointer;
 };
+

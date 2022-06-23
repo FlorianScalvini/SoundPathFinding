@@ -18,10 +18,10 @@ bool lavManager::close_thread;
 void lavManager::init()
 {
     state = WAIT_DST;
-    graph = new Graph("/home/ubuntu/CLionProjects/pathFinder/path/graph.txt");
+    graph = new Graph("/home/florian/CLionProjects/SoundPathFinding/path/graph.txt");
     graph->showGraph();
     path = new PathFinding(graph);
-    currentNode = 0;
+    currentNode = 1;
 }
 
 bool lavManager::isVoiceControl()
@@ -40,15 +40,21 @@ void lavManager::nearSpecialTarget()
 
 void lavManager::nearTarget()
 {
+    currentNode = path->getCurrentNode()->label;
     path->update();
+    path->showPath();
+    std::cout<<currentNode<< " "<<dst<<std::endl;
     if(currentNode == dst)
     {
+        std::cout<<"Destination atteinte"<<std::endl;
         lavVocal::push_buffer(3);
+        std::cout<<"State : Near target -> Wait Dst"<<std::endl;
         state = WAIT_DST;
     }
     else{
         lavVocal::push_buffer(1);
         state = SCAN_ENV;
+        std::cout<<"State : Near target -> Scan env"<<std::endl;
     }
 
 }
@@ -65,6 +71,8 @@ void lavManager::scanEnv() {
     }
     if(mrk!= nullptr)
     {
+        std::cout<<"State : In transit -> Near target"<<std::endl;
+        path->showPath();
         lavVideoProcessor::startSound();
         state = IN_TRANSIT;
     }
@@ -72,6 +80,7 @@ void lavManager::scanEnv() {
 
 void lavManager::inTransit()
 {
+    lavVideoProcessor::startSound();
     cv::Mat output = cv::Mat(cv::Size(COLOR_FRAME_WIDTH, COLOR_FRAME_HEIGHT), CV_8UC1);
     output.setTo(cv::Scalar(0));
     DataVideoProcessing dataOut = lavVideoProcessor::pull_data();
@@ -84,7 +93,7 @@ void lavManager::inTransit()
             mrk = &pathData;
         }
          */
-        if(pathData.label_i == path->getCurrentNode()->label)
+        if(pathData.label_i == 0)
         {
             mrk = &pathData;
             break;
@@ -102,6 +111,7 @@ void lavManager::inTransit()
         }
         if(mrk->distance < 1000)
         {
+            std::cout<<"State : In transit -> Near target"<<std::endl;
             state = NEAR_TARGET;
         }
     }

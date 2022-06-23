@@ -131,7 +131,10 @@ void lavVideoProcessor::acquireAndProcessFrame() {
     cv::GaussianBlur(_inputMat, _inputMat, cv::Size(3,3),1);
     for(auto const& mrk: stagDetector.markers)
     {
-        data.data_path.push_back({(unsigned int)mrk.center.x, (unsigned int)mrk.center.y, _inputMat.at<unsigned short>((int)mrk.center.x, (int)mrk.center.y),mrk.id});
+        short distance = _inputMat.at<unsigned short>((int)mrk.center.x, (int)mrk.center.y);
+        std::cout<<distance<<std::endl;
+        data.data_path.push_back({(unsigned int)mrk.center.x, (unsigned int)mrk.center.y, distance, mrk.id});
+
     }
     push_data(data);
     cv::imshow("image", img);

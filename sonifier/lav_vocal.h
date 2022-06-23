@@ -23,7 +23,7 @@ public:
 
     static int idx;
     static pthread_mutex_t _sound_mutex;
-    static std::vector<SoundReader*> sounds;
+    static std::vector<SoundReader> sounds;
     static SoundReader* sound;
 };
 

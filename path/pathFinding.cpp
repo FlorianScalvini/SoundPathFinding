@@ -91,7 +91,10 @@ bool PathFinding::changeToClosestNode(unsigned int label)
 
 Node* PathFinding::update()
 {
-    this->currPosition++;
+    if(currPosition < markerList.size()-1)
+    {
+        this->currPosition++;
+    }
     return this->getCurrentNode();
 }
 
