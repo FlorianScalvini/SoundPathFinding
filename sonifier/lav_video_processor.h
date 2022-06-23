@@ -31,18 +31,22 @@
 #include "Detection/DetecteurTensorRT.h"
 #endif
 
-#ifdef PATH_MARKER
+#include "lav_manager.h"
 #include "Stag.h"
 
 
-struct MarkerDetection
-{
-    int x_pixel;
-    int y_pixel;
+struct PathOut{
+    unsigned int x_pixel;
+    unsigned int y_pixel;
     int z_grayscale;
     int label_i;
 };
-#endif
+
+struct DataVideoProcessing
+{
+    std::vector<PathOut> data_path;
+};
+
 
 
 
@@ -60,59 +64,21 @@ public:
         static Detecteur* _detecteur;
         #endif
 
-        static unsigned int _cptVideoFrame;
+
         static cv::Mat _inputMat;
-        static cv::Mat _inputMatScaled;
+        static cv::Mat _inputMatColor;
         static cv::Mat _tmpMat;
 		static cv::Mat _outputMat;
 		static cv::Mat _mOutputRGBA;
 		static cv::Mat _previousMat;
 		static cv::Mat _outputMatForDisplay;
-        static cv::Mat _colorFrameForVideoRecording;
+        static DataVideoProcessing transData;
 
-
-        #ifdef DEPTH_VIDEOPROCESSING
-        static cv::Mat previousGoodPixelsMask;
-        static cv::Mat currentGoodPixelsMask;
-        static cv::Mat currentAndPreviousGoodPixelsMask;
-        static cv::Mat newGoodPixelsMask;
-        static cv::Mat depthProximityAlarmMask;
-        static cv::Mat frameDifferencing;
-        static cv::Mat frameDifferencingMask;
-        static cv::Mat selectedFrameDifferencing;
-        static cv::Mat finalMaskDepth;
-        #endif
-
-
-        #ifdef PATH_MARKER
         static Stag stagDetector;
-
-        #endif
-
-        //static pthread_t thread_video_processing;
-
-		//for LavCamera
-		//LavCamera* _pCam;
-		//end for LavCamera
-
-		//for android Camera
-    	//static cv::VideoCapture* _capture;
     	static lavVideoCapture* _capture;
-
-        static cv::VideoWriter* _pVideoWriter;
-
-        //static lavVideoCapture* _lavVideoCapture;
-    	//end android Camera
-
     	static bool _silence;
-
         static bool _firstFrame;
-        static int _nbNonZero;
-
         static int _close_video;
-    static bool _colorProcessingReady;
-        static pthread_mutex_t _mutexColorProcessing;
-    private:
 
 	public:
 
@@ -121,13 +87,12 @@ public:
 	    static void startOrStopSound();
 	    static void processFrame();
 	    static void acquireAndProcessFrame();
+        static void push_data(DataVideoProcessing data);
+        static DataVideoProcessing pull_data();
 	    static void* start_video_stream(void* args);
-        static void* acquireAndProcessFrameColor(void *args);
-	    static void start_thread_video_stream();
-        static void getNextProcesing();
-        static bool _colorProcessingDone;
-        static cv::Mat _inputMatColor;
+        static void start_thread_video_stream();
+        static pthread_mutex_t mutex_data_out;
+        static bool newValue;
 };
-
 
 #endif

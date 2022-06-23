@@ -6,45 +6,24 @@
 cv::Size sizeDepth(DEPTH_FRAME_WIDTH, DEPTH_FRAME_WIDTH);//SHORT_RANGE
 cv::Size sizeColor(COLOR_FRAME_WIDTH, COLOR_FRAME_WIDTH);//SHORT_RANGE
 
-
-//cv::Size size(160, 120);//LONG_RANGE
-bool lavVideoProcessor::_colorProcessingDone = false;
-bool lavVideoProcessor::_colorProcessingReady = false;
-pthread_mutex_t lavVideoProcessor::_mutexColorProcessing = PTHREAD_MUTEX_INITIALIZER;
-cv::VideoWriter* lavVideoProcessor::_pVideoWriter = new  cv::VideoWriter("recording.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 25, sizeDepth, true);
-unsigned int lavVideoProcessor::_cptVideoFrame = 0;
 cv::Mat lavVideoProcessor::_inputMat;
-cv::Mat lavVideoProcessor::_inputMatScaled = cv::Mat(sizeDepth, CV_8UC1);
+
 cv::Mat lavVideoProcessor::_inputMatColor;
 cv::Mat lavVideoProcessor::_tmpMat;
 cv::Mat lavVideoProcessor::_outputMat;
 cv::Mat lavVideoProcessor::_mOutputRGBA;
 cv::Mat lavVideoProcessor::_previousMat;
 cv::Mat lavVideoProcessor::_outputMatForDisplay;
-cv::Mat lavVideoProcessor::_colorFrameForVideoRecording = cv::Mat(sizeDepth, CV_8UC3);
+DataVideoProcessing lavVideoProcessor::transData;
+bool lavVideoProcessor::newValue;
+lavVideoCapture* lavVideoProcessor::_capture = nullptr;
 
-lavVideoCapture* lavVideoProcessor::_capture = 0;
-
-bool lavVideoProcessor::_silence = 0;
+bool lavVideoProcessor::_silence = false;
 bool lavVideoProcessor::_firstFrame = true;
-int lavVideoProcessor::_nbNonZero = 0;
 int lavVideoProcessor::_close_video = 0;
-
+pthread_mutex_t lavVideoProcessor::mutex_data_out = PTHREAD_MUTEX_INITIALIZER;
 //pthread_t lavVideoProcessor::thread_video_processing;
 
-
-#ifdef DEPTH_VIDEOPROCESSING
-cv::Mat lavVideoProcessor::currentGoodPixelsMask = cv::Mat(sizeDepth, CV_8UC1);
-cv::Mat lavVideoProcessor::previousGoodPixelsMask = cv::Mat(sizeDepth, CV_8UC1);
-cv::Mat lavVideoProcessor::currentAndPreviousGoodPixelsMask = cv::Mat(sizeDepth, CV_8UC1);
-cv::Mat lavVideoProcessor::newGoodPixelsMask = cv::Mat(sizeDepth, CV_8UC1);
-
-cv::Mat lavVideoProcessor::depthProximityAlarmMask = cv::Mat(sizeDepth, CV_8UC1);
-cv::Mat lavVideoProcessor::frameDifferencing = cv::Mat(sizeDepth, CV_8UC1);
-cv::Mat lavVideoProcessor::frameDifferencingMask = cv::Mat(sizeDepth, CV_8UC1);
-cv::Mat lavVideoProcessor::selectedFrameDifferencing = cv::Mat(sizeDepth, CV_8UC1);
-cv::Mat lavVideoProcessor::finalMaskDepth = cv::Mat(sizeDepth, CV_8UC1);
-#endif
 
 #ifdef OBJECT_DETECTION
 std::map<unsigned int, std::vector<ObjectBoundingBox>> lavVideoProcessor::_detOutput = {};
@@ -78,6 +57,7 @@ void lavVideoProcessor::init() {
 void lavVideoProcessor::init() {
     lavVideoProcessor::_capture = lavRealsenseCamera::getSingleton();
     _mOutputRGBA = cv::Mat(FRAME_HEIGHT_SONIFIED, FRAME_WIDTH_SONIFIED, CV_8UC4);
+    newValue = false;
 }
 #endif
 
@@ -96,69 +76,23 @@ void lavVideoProcessor::startOrStopSound() {
 	}
 }
 
-#ifdef DEPTH_VIDEOPROCESSING
-void lavVideoProcessor::processFrame() {
-
-
-    for(int j = 0; j < _inputMat.rows; j++)
-    {
-        for( int i = 0; i < _inputMat.cols; i++)
-        {
-            if(_inputMatScaled.at<unsigned char>(j,i) == 255
-               || _previousMat.at<unsigned char>(j,i) == 255
-               || _inputMatScaled.at<unsigned char>(j,i) == 0)
-                frameDifferencingMask.at<unsigned char>(j,i) = 0;
-            else
-                frameDifferencingMask.at<unsigned char>(j,i) = abs(_inputMatScaled.at<unsigned char>(j,i) - _previousMat.at<unsigned char>(j,i));
-        }
-    }
-
-    _inputMatScaled.copyTo(_previousMat);
-    cv::GaussianBlur(frameDifferencingMask, frameDifferencingMask, cv::Size(3,3), 2.0, 2.0);
-    cv::threshold(frameDifferencingMask, frameDifferencingMask, MIN_GRAYSCALE_SONIFICATION, 1, cv::THRESH_BINARY);
-
-    cv::threshold(_inputMatScaled, depthProximityAlarmMask, 255, 1, cv::THRESH_BINARY);
-
-    //finalMaskDepth = frameDifferencingMask+depthProximityAlarmMask;
-    finalMaskDepth = frameDifferencingMask;
-    cv::multiply(_inputMatScaled, finalMaskDepth, _outputMat);
+DataVideoProcessing lavVideoProcessor::pull_data()
+{
+    DataVideoProcessing dataOut;
+    while(!newValue)
+        usleep(500);
+    pthread_mutex_lock(&mutex_data_out);
+    dataOut = transData;
+    pthread_mutex_unlock(&mutex_data_out);
+    return dataOut;
 }
 
-#else
-void lavVideoProcessor::processFrame() {
-
-
-
-	//to display input
-	//_inputMat.copyTo(_outputMatForDisplay);
-
-
-	//lavConstants::__startTimeChecking();
-
-	cv::absdiff(_inputMat, _previousMat, _outputMat);
-	_inputMat.copyTo(_previousMat);
-	cv::GaussianBlur(_outputMat, _outputMat, cv::Size(3,3), 2.0, 2.0);
-	cv::threshold(_outputMat, _outputMat, 100, 255, 0);
-
-
-	//lavConstants::__stopTimeChecking("standard video processing");
-
-	/*int nbActivePixel = cv::countNonZero(_outputMat);
-	if (nbActivePixel>10) {
-		_outputMat.setTo(cv::Scalar(255));
-	}*/
-
-	//_outputMat.setTo(cv::Scalar(255));
-	/*int x = 140;
-	int y = 60;
-	cv::rectangle( _outputMat, cv::Point( x, y), cv::Point(x+10, y+10), cv::Scalar( 255), -1);*/
-
-	//to comment if no display on the screen
-	//cv::cvtColor(_outputMat, _mOutputRGBA, 9);
-
+void lavVideoProcessor::push_data(DataVideoProcessing data) {
+    pthread_mutex_lock(&mutex_data_out);
+    transData = data;
+    newValue = true;
+    pthread_mutex_unlock(&mutex_data_out);
 }
-#endif
-
 
 
 
@@ -169,52 +103,40 @@ void lavVideoProcessor::acquireAndProcessFrame() {
     _inputMat = _capture->getNextFrame();
     cv::cvtColor(_inputMatColor, img, cv::COLOR_BGR2GRAY);
     stagDetector.detectMarkers(img);
-    lavSonifier::sonify(&_outputMat);
-}
-
-#ifdef PATH_MARKER
-void* lavVideoProcessor::acquireAndProcessFrameColor(void *args)
-{
-    return nullptr;
-}
-#else
-
-void* lavVideoProcessor::acquireAndProcessFrameColor(void *args)
-{
-    while(!_close_video)
+    DataVideoProcessing data;
+    cv::GaussianBlur(_inputMat, _inputMat, cv::Size(3,3),1);
+    for(auto const& mrk: stagDetector.markers)
     {
-        while (!_colorProcessingReady) {
-            usleep(500);
-        }
-        pthread_mutex_lock(&_mutexColorProcessing);
-
-        _colorProcessingReady = false;
-        pthread_mutex_unlock(&_mutexColorProcessing);
-        _inputMatColor = _capture->getNextFrameColor();
-        pthread_mutex_lock(&_mutexColorProcessing);
-        _colorProcessingDone = true;
-        pthread_mutex_unlock(&_mutexColorProcessing);
+        data.data_path.push_back({(unsigned int)mrk.center.x, (unsigned int)mrk.center.y, 0,mrk.id});
     }
-    return nullptr;
+    push_data(data);
 }
-#endif
-
 
 void* lavVideoProcessor::start_video_stream(void* args) {
-	//int i = 0;
+    //int i = 0;
     //auto t_start = std::chrono::high_resolution_clock::now();;
     while (! _close_video) {
-		acquireAndProcessFrame();
-	}
-	lavLog::LAVLOG("video_close\n");
-	_capture->release();
-	return nullptr;
+        if(!_silence)
+        {
+            acquireAndProcessFrame();
+        }
+
+
+    }
+    lavLog::LAVLOG("video_close\n");
+    _capture->release();
+    return nullptr;
 }
 
 
 void lavVideoProcessor::start_thread_video_stream() {
     //usleep(10000);
-	pthread_t thread_video_processing;
-	pthread_create(&thread_video_processing, nullptr, start_video_stream, (void*)nullptr);
+    pthread_t thread_video_processing;
+    pthread_create(&thread_video_processing, nullptr, start_video_stream, (void*)nullptr);
 }
+
+
+
+
+
 

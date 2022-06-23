@@ -55,9 +55,9 @@ void lavManager::nearTarget()
 }
 
 void lavManager::scanEnv() {
-    std::vector<MarkerDetection> markers;
-    MarkerDetection* mrk = nullptr;
-    for(auto marker: markers)
+    DataVideoProcessing dataOut = lavVideoProcessor::pull_data();
+    PathOut* mrk = nullptr;
+    for(auto marker: dataOut.data_path)
     {
         if(path->changeToClosestNode(marker.label_i))
         {
@@ -74,13 +74,13 @@ void lavManager::inTransit()
 {
     cv::Mat output = cv::Mat(cv::Size(COLOR_FRAME_WIDTH, COLOR_FRAME_HEIGHT), CV_8UC1);
     output.setTo(cv::Scalar(0));
-    std::vector<MarkerDetection> markers;
-    MarkerDetection* mrk = nullptr;
-    for(auto marker: markers)
+    DataVideoProcessing dataOut = lavVideoProcessor::pull_data();
+    PathOut* mrk = nullptr;
+    for(auto pathData: dataOut.data_path)
     {
-        if(path->changeToClosestNode(marker.label_i))
+        if(path->changeToClosestNode(pathData.label_i))
         {
-            mrk = &marker;
+            mrk = &pathData;
         }
     }
     if(mrk != nullptr)
