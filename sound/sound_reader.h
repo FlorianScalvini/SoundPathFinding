@@ -10,17 +10,17 @@
 
 class SoundReader {
 public:
-    explicit SoundReader(const char* file, const int sizechunks);
+    explicit SoundReader(const char* file, int sizechunks);
     ~SoundReader();
     void* pull_buffer();
     void start();
     bool isReading();
-private:
-    const int sizeAudioChunkSample;
+    int sizeAudioChunkSample;
     int sizeData;
-    short * bufferSound;
+    short ** bufferSound;
     short *lastChunkPtr;
     short *currentChunkPtr;
+private:
 };
 
 

@@ -3,6 +3,7 @@
 void lav::start() {
 
 	lavLog::LAVLOG("start lav\n");
+    lavVocal::init();
 	lavVideoProcessor::init();
 	lavComputer::init();
 	lavConstants::init();
@@ -15,7 +16,7 @@ void lav::start() {
     lavLog::LAVLOG("lav init finished\n");
     //lavVideoProcessor::start_video_stream(NULL);
 
-    usleep(7000000);
+    usleep(3000000);
 
     lavLog::LAVLOG("lavVideoProcessor::start_thread_video_stream\n");
     lavVideoProcessor::start_thread_video_stream();
@@ -26,7 +27,7 @@ void lav::start() {
     lavLog::LAVLOG("lavAudioStream::start_thread_audio_stream\n");
     lavManager::start_thread_path_manager();
 
-
+    lavManager::setDst(3);
 }
 
 void lav::stop() {

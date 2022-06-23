@@ -19,7 +19,7 @@ void Drawer::colorAPixel(cv::Mat& img, int x, int y, cv::Scalar color, int dotWi
 		}
 	}
 }
-
+/*
 void Drawer::drawEdgeMap(const string& path, Mat image, EdgeMap* edgeMap)
 {
 	Mat greyMat = image.clone();
@@ -120,7 +120,7 @@ void Drawer::drawMarkers(const string& path, Mat image, const vector<Marker> &ma
 	vector<int> compressionParams = { cv::IMWRITE_PNG_COMPRESSION, 0 };
 	cv::imwrite(path, bgrMat, compressionParams);
 }
-
+*/
 
 void Drawer::drawMarkers(cv::Mat* image, const vector<Marker> &markers)
 {
@@ -145,7 +145,7 @@ void Drawer::drawMarkers(cv::Mat* image, const vector<Marker> &markers)
         cv::putText(*image, std::to_string(markers[i].id), center, cv::FONT_HERSHEY_DUPLEX, 2, cv::Scalar(50, 50, 255), 2, cv::LINE_AA);
     }
 }
-
+/*
 void Drawer::drawEllipses(const string& path, Mat image, const vector<Marker> &markers)
 {
 	Mat greyMat = image.clone();
@@ -280,4 +280,4 @@ void Drawer::drawEllipses(const string& path, Mat image, const vector<Marker> &m
 	}
 	vector<int> compressionParams = { cv::IMWRITE_PNG_COMPRESSION, 0 };
 	cv::imwrite(path, bgrMat, compressionParams);
-}
+}*/

@@ -51,8 +51,6 @@ private:
     static unsigned int dst;
     static PathFinding* path;
     static Graph* graph;
-    static std::vector<SoundReader> sounds;
-    static SoundReader* sound;
 
 
 };

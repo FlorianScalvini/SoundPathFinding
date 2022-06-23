@@ -12,15 +12,14 @@ int lavManager::state = NULL;
 unsigned int lavManager::dst = NULL;
 PathFinding* lavManager::path = nullptr;
 Graph* lavManager::graph = nullptr;
-std::vector<SoundReader> lavManager::sounds;
-SoundReader* lavManager::sound = nullptr;
 unsigned int lavManager::currentNode;
 bool lavManager::close_thread;
 
 void lavManager::init()
 {
     state = WAIT_DST;
-    graph = new Graph("/home/florian/CLionProjects/SoundPathFinding/path/graph.txt");
+    graph = new Graph("/home/ubuntu/CLionProjects/pathFinder/path/graph.txt");
+    graph->showGraph();
     path = new PathFinding(graph);
     currentNode = 0;
 }
@@ -79,9 +78,16 @@ void lavManager::inTransit()
     PathOut* mrk = nullptr;
     for(auto pathData: dataOut.data_path)
     {
+        /*
         if(path->changeToClosestNode(pathData.label_i))
         {
             mrk = &pathData;
+        }
+         */
+        if(pathData.label_i == path->getCurrentNode()->label)
+        {
+            mrk = &pathData;
+            break;
         }
     }
     if(mrk != nullptr)
@@ -91,18 +97,23 @@ void lavManager::inTransit()
             for(int y = mrk->y_pixel - 7; y < mrk->y_pixel + 7; y++)
             {
                 if(x >= 0 && y >= 0 && x < COLOR_FRAME_WIDTH && y < COLOR_FRAME_WIDTH)
-                    output.at<unsigned char>(y, x);
+                    output.at<unsigned char>(y, x) = 255;
             }
+        }
+        if(mrk->distance < 1000)
+        {
+            state = NEAR_TARGET;
         }
     }
     cv::resize(output, output, cv::Size(FRAME_WIDTH_SONIFIED, FRAME_HEIGHT_SONIFIED), 0, 0, 0);
-    lavSonifier::sonify(nullptr);
+    cv::imshow("sonify", output);
+    //lavSonifier::sonify(&output);
 }
 
 
 void lavManager::process()
 {
-    while(sound->isReading())
+    while(lavVocal::isReading())
     {
         usleep(500);
     }
@@ -129,14 +140,20 @@ void lavManager::waitDst()
     lavVideoProcessor::stopSound();
     lavVocal::push_buffer(0);
     std::string char_dst;
+    std::cout<<"Destination: "<<std::endl;
     std::getline(std::cin, char_dst);
     // If the string is a number
-    if(std::all_of(char_dst.begin(), char_dst.end(), [](const char i){return std::isdigit(i);}))
+    if(!char_dst.empty() && std::all_of(char_dst.begin(), char_dst.end(), [](const char i){return std::isdigit(i);}))
     {
         lavManager::setDst(std::stoi(char_dst));
         if(path->newPath(currentNode, dst));
+        {
+            path->showPath();
             state = IN_TRANSIT;
             lavVideoProcessor::startSound();
+            path->update();
+            std::cout<<"Start sonification vers cible "<< path->getCurrentNode()->label<< std::endl;
+        }
     }
     else
         usleep(100000);
@@ -164,5 +181,6 @@ void lavManager::start_thread_path_manager() {
     close_thread = false;
     pthread_t thread_video_processing;
     pthread_create(&thread_video_processing, nullptr, start_path_manager, (void*)nullptr);
+    pthread_join(thread_video_processing, nullptr);
 }
 

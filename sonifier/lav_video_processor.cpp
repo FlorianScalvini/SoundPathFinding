@@ -15,7 +15,7 @@ cv::Mat lavVideoProcessor::_mOutputRGBA;
 cv::Mat lavVideoProcessor::_previousMat;
 cv::Mat lavVideoProcessor::_outputMatForDisplay;
 DataVideoProcessing lavVideoProcessor::transData;
-bool lavVideoProcessor::newValue;
+bool lavVideoProcessor::_newValue;
 lavVideoCapture* lavVideoProcessor::_capture = nullptr;
 
 bool lavVideoProcessor::_silence = false;
@@ -57,7 +57,8 @@ void lavVideoProcessor::init() {
 void lavVideoProcessor::init() {
     lavVideoProcessor::_capture = lavRealsenseCamera::getSingleton();
     _mOutputRGBA = cv::Mat(FRAME_HEIGHT_SONIFIED, FRAME_WIDTH_SONIFIED, CV_8UC4);
-    newValue = false;
+    _newValue = false;
+    _silence = true;
 }
 #endif
 
@@ -70,7 +71,7 @@ void lavVideoProcessor::release() {
 void lavVideoProcessor::startSound()
 {
     pthread_mutex_lock(&mutex_data_out);
-    newValue = false;
+    _newValue = false;
     _silence = false;
     pthread_mutex_unlock(&mutex_data_out);
 }
@@ -78,14 +79,14 @@ void lavVideoProcessor::startSound()
 void lavVideoProcessor::stopSound()
 {
     pthread_mutex_lock(&mutex_data_out);
-    newValue = false;
+    _newValue = false;
     _silence = true;
     pthread_mutex_unlock(&mutex_data_out);
 }
 
 void lavVideoProcessor::startOrStopSound() {
     pthread_mutex_lock(&mutex_data_out);
-    newValue = false;
+    _newValue = false;
     pthread_mutex_unlock(&mutex_data_out);
 	if (!_silence) {
 		_silence = true;
@@ -98,13 +99,13 @@ void lavVideoProcessor::startOrStopSound() {
 DataVideoProcessing lavVideoProcessor::pull_data()
 {
     DataVideoProcessing dataOut;
-    while(!newValue)
+    while(!_newValue)
         usleep(500);
     pthread_mutex_lock(&mutex_data_out);
     if(!_silence)
         dataOut = transData;
     else
-        newValue = false;
+        _newValue = false;
     pthread_mutex_unlock(&mutex_data_out);
     return dataOut;
 }
@@ -112,7 +113,7 @@ DataVideoProcessing lavVideoProcessor::pull_data()
 void lavVideoProcessor::push_data(DataVideoProcessing data) {
     pthread_mutex_lock(&mutex_data_out);
     transData = data;
-    newValue = true;
+    _newValue = true;
     pthread_mutex_unlock(&mutex_data_out);
 }
 
@@ -125,13 +126,16 @@ void lavVideoProcessor::acquireAndProcessFrame() {
     _inputMat = _capture->getNextFrame();
     cv::cvtColor(_inputMatColor, img, cv::COLOR_BGR2GRAY);
     stagDetector.detectMarkers(img);
+    Drawer::drawMarkers(&img, stagDetector.markers);
     DataVideoProcessing data;
     cv::GaussianBlur(_inputMat, _inputMat, cv::Size(3,3),1);
     for(auto const& mrk: stagDetector.markers)
     {
-        data.data_path.push_back({(unsigned int)mrk.center.x, (unsigned int)mrk.center.y, 0,mrk.id});
+        data.data_path.push_back({(unsigned int)mrk.center.x, (unsigned int)mrk.center.y, _inputMat.at<unsigned short>((int)mrk.center.x, (int)mrk.center.y),mrk.id});
     }
     push_data(data);
+    cv::imshow("image", img);
+    cv::waitKey(1);
 }
 
 void* lavVideoProcessor::start_video_stream(void* args) {

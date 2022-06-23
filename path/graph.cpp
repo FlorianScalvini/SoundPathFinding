@@ -119,7 +119,6 @@ int Graph::extractValue(char ** txt, const char * lastTxt) {
         *txt += 1;
     }
     skipSpace(txt, lastTxt);
-    std::cout<<numberString<<std::endl;
     number = std::stoi(numberString);
     return number;
 }

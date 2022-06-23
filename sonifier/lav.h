@@ -10,6 +10,7 @@
 #include "lav_wav.h"
 #include "lav_computer.h"
 #include "lav_manager.h"
+#include "lav_vocal.h"
 
 
 class lav {

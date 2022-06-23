@@ -38,7 +38,7 @@
 struct PathOut{
     unsigned int x_pixel;
     unsigned int y_pixel;
-    int z_grayscale;
+    int distance;
     int label_i;
 };
 
@@ -79,7 +79,7 @@ public:
     	static bool _silence;
         static bool _firstFrame;
         static int _close_video;
-
+        static bool _newValue;
 	public:
 
 	    static void init();
@@ -91,7 +91,7 @@ public:
         static DataVideoProcessing pull_data();
 	    static void* start_video_stream(void* args);
         static void start_thread_video_stream();
-
+        static pthread_mutex_t mutex_data_out;
         static void startSound();
         static void stopSound();
 

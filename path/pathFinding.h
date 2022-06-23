@@ -15,6 +15,7 @@ public:
     Node* update();
     Node* getCurrentNode();
     bool changeToClosestNode(unsigned int label);
+    void showPath();
 
 private:
     std::vector<unsigned int> markerList;

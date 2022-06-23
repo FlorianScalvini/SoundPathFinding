@@ -55,12 +55,12 @@ public:
     int createWavFile(char* databasePath);
     int readHeader();
     template <typename T> void readData(T data, int nb_item);
+    void readData(float* data, int nb_item);
     int getSizeData();
     int getSizeHeader();
     int getNbChannel();
     Wav_header* getHeader();
 
-    FILE *_wav_file;
 private:
     Wav_header header{};
     char * filename;

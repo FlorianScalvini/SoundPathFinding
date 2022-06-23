@@ -6,8 +6,9 @@
 
 
 
-SoundReader::SoundReader(const char* file, const int sizechunks) : sizeAudioChunkSample(sizechunks)
+SoundReader::SoundReader(const char* file, const int sizechunks)
 {
+    sizeAudioChunkSample = sizechunks;
     SoundWav soundWav((char*)file);
     soundWav.readHeader();
     sizeData = soundWav.getSizeData();
@@ -17,36 +18,42 @@ SoundReader::SoundReader(const char* file, const int sizechunks) : sizeAudioChun
         return;
     }
     int numberChunks = ceil((sizeData) / sizechunks);
-    bufferSound = new short [numberChunks * 2 * sizechunks];
-    auto* tempArray = new float [numberChunks * sizechunks];
-    memset(bufferSound, 0, numberChunks*sizechunks*sizeof(float));
-    lastChunkPtr =  bufferSound + sizechunks * (numberChunks - 1);
+    short* buffer = new short [numberChunks * 2 * sizechunks];
+
+
+    auto* tempArray = new short [numberChunks * sizechunks];
+    memset(buffer, 0, numberChunks*sizechunks*sizeof(float));
+
     soundWav.readData(tempArray, sizeData);
     for(int i = 0; i < numberChunks * sizechunks; i++)
     {
-        bufferSound[2*i] = (short)tempArray[i];
-        bufferSound[2*i+1] = (short)tempArray[i];
+        buffer[2*i] = (short)tempArray[i];
+        buffer[2*i+1] = (short)tempArray[i];
     }
-    this->currentChunkPtr = bufferSound;
+
+    this->currentChunkPtr = *bufferSound;
+    lastChunkPtr =  buffer + sizechunks * (numberChunks - 1);
+    bufferSound = &buffer;
+    std::cout<<sizechunks<<std::endl;
 }
 
 bool SoundReader::isReading()
 {
-    if(currentChunkPtr != nullptr)
-        return true;
-    else
+
+    if(currentChunkPtr == nullptr)
         return false;
+    else
+        return true;
 }
 
 void SoundReader::start()
 {
-    currentChunkPtr = bufferSound;
+    currentChunkPtr = *bufferSound;
 }
 
-void *SoundReader::pull_buffer()
+void* SoundReader::pull_buffer()
 {
-    void* pointer_result = NULL;
-    pointer_result = currentChunkPtr;
+    void* pointer_result = currentChunkPtr;
     if(currentChunkPtr == lastChunkPtr)
         currentChunkPtr = nullptr;
     else
@@ -56,5 +63,5 @@ void *SoundReader::pull_buffer()
 
 SoundReader::~SoundReader()
 {
-    delete[] bufferSound;
+    delete[] *bufferSound;
 }

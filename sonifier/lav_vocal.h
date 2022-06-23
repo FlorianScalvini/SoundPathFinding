@@ -19,9 +19,11 @@ public:
     static void* pull_buffer();
     static void push_buffer(unsigned int indice);
     static bool isReading();
+    static short* emptyBuffer;
 
+    static int idx;
     static pthread_mutex_t _sound_mutex;
-    static std::map<unsigned int, SoundReader> sounds;
+    static std::vector<SoundReader*> sounds;
     static SoundReader* sound;
 };
 

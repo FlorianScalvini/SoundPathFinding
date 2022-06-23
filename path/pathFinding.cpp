@@ -5,6 +5,7 @@
 #include "pathFinding.h"
 #include <queue>
 #include <algorithm>
+#include <iostream>
 
 PathFinding::PathFinding(Graph* graph)
 {
@@ -94,3 +95,14 @@ Node* PathFinding::update()
     return this->getCurrentNode();
 }
 
+void PathFinding::showPath()
+{
+    for(int i = currPosition; i < markerList.size(); i++)
+    {
+        std::cout<<markerList[i];
+        if(i < (markerList.size()-1))
+            std::cout<<" --> ";
+        else
+            std::cout<<std::endl;
+    }
+}
