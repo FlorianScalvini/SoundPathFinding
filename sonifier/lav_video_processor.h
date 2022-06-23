@@ -91,8 +91,10 @@ public:
         static DataVideoProcessing pull_data();
 	    static void* start_video_stream(void* args);
         static void start_thread_video_stream();
-        static pthread_mutex_t mutex_data_out;
-        static bool newValue;
+
+        static void startSound();
+        static void stopSound();
+
 };
 
 #endif

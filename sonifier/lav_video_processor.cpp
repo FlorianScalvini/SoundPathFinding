@@ -67,7 +67,26 @@ void lavVideoProcessor::release() {
 
 }
 
+void lavVideoProcessor::startSound()
+{
+    pthread_mutex_lock(&mutex_data_out);
+    newValue = false;
+    _silence = false;
+    pthread_mutex_unlock(&mutex_data_out);
+}
+
+void lavVideoProcessor::stopSound()
+{
+    pthread_mutex_lock(&mutex_data_out);
+    newValue = false;
+    _silence = true;
+    pthread_mutex_unlock(&mutex_data_out);
+}
+
 void lavVideoProcessor::startOrStopSound() {
+    pthread_mutex_lock(&mutex_data_out);
+    newValue = false;
+    pthread_mutex_unlock(&mutex_data_out);
 	if (!_silence) {
 		_silence = true;
 	}
@@ -82,7 +101,10 @@ DataVideoProcessing lavVideoProcessor::pull_data()
     while(!newValue)
         usleep(500);
     pthread_mutex_lock(&mutex_data_out);
-    dataOut = transData;
+    if(!_silence)
+        dataOut = transData;
+    else
+        newValue = false;
     pthread_mutex_unlock(&mutex_data_out);
     return dataOut;
 }
@@ -117,11 +139,9 @@ void* lavVideoProcessor::start_video_stream(void* args) {
     //auto t_start = std::chrono::high_resolution_clock::now();;
     while (! _close_video) {
         if(!_silence)
-        {
             acquireAndProcessFrame();
-        }
-
-
+        else
+            usleep(1000);
     }
     lavLog::LAVLOG("video_close\n");
     _capture->release();

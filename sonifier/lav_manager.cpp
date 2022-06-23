@@ -66,6 +66,7 @@ void lavManager::scanEnv() {
     }
     if(mrk!= nullptr)
     {
+        lavVideoProcessor::startSound();
         state = IN_TRANSIT;
     }
 }
@@ -125,6 +126,7 @@ void lavManager::process()
 
 void lavManager::waitDst()
 {
+    lavVideoProcessor::stopSound();
     lavVocal::push_buffer(0);
     std::string char_dst;
     std::getline(std::cin, char_dst);
@@ -134,6 +136,7 @@ void lavManager::waitDst()
         lavManager::setDst(std::stoi(char_dst));
         if(path->newPath(currentNode, dst));
             state = IN_TRANSIT;
+            lavVideoProcessor::startSound();
     }
     else
         usleep(100000);
