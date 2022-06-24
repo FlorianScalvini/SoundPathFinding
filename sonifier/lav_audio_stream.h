@@ -33,7 +33,6 @@ class lavAudioStream {
 
 		static int _close_audio;
 		static snd_pcm_t *playback_handle;
-    	static short* buf;        
 
 		static void* play_audio_stream(void* arg);
 

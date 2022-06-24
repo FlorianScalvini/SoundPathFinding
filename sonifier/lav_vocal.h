@@ -12,7 +12,6 @@
 
 
 
-
 class lavVocal {
 public:
     static void init();
@@ -24,7 +23,9 @@ public:
     static int idx;
     static pthread_mutex_t _sound_mutex;
     static std::vector<SoundReader> sounds;
-    static SoundReader* sound;
+    static SoundReader* ptrSound;
+
+
 };
 
 

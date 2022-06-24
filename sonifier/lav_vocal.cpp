@@ -4,10 +4,17 @@
 
 #include "lav_vocal.h"
 
-
+std::vector<const char* > soundFile = {
+        { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
+        { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
+        { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
+        { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
+        { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
+        { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" }
+};
 
 std::vector<SoundReader> lavVocal::sounds;
-SoundReader* lavVocal::sound = nullptr;
+SoundReader* lavVocal::ptrSound = nullptr;
 pthread_mutex_t lavVocal::_sound_mutex = PTHREAD_MUTEX_INITIALIZER;
 short* lavVocal::emptyBuffer;
 int lavVocal::idx;
@@ -32,25 +39,27 @@ void lavVocal::init()
 
     idx = -1;
     emptyBuffer = new short[SIZE_AUDIO_CHUNK_IN_VALUE];
-    sound = nullptr;
+    ptrSound = nullptr;
 };
 
 void lavVocal::start(unsigned int indice)
 {
     idx = indice;
     pthread_mutex_lock(&_sound_mutex);
-    sound = &sounds[indice];
-    sound->start();
+    ptrSound = &sounds[indice];
+    ptrSound->start();
     pthread_mutex_unlock(&_sound_mutex);
 }
 
 bool lavVocal::isReading() {
-    if(sound == nullptr)
+    if(ptrSound == nullptr)
         return false;
     else
-    if(!sound->isReading())
+    if(!ptrSound->isReading())
     {
-        sound == nullptr;
+        pthread_mutex_lock(&_sound_mutex);
+        ptrSound == nullptr;
+        pthread_mutex_unlock(&_sound_mutex);
         return false;
     }
     else
@@ -60,12 +69,12 @@ bool lavVocal::isReading() {
 void* lavVocal::pull_buffer()
 {
     void * return_pointer = emptyBuffer;
-    if(sound != nullptr)
+    pthread_mutex_lock(&_sound_mutex);
+    if(ptrSound != nullptr)
     {
-        pthread_mutex_lock(&_sound_mutex);
-        return_pointer = sound->pull_buffer();
-        pthread_mutex_unlock(&_sound_mutex);
+        return_pointer = ptrSound->pull_buffer();
     }
+    pthread_mutex_unlock(&_sound_mutex);
     return return_pointer;
 };
 

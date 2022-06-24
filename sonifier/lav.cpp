@@ -27,7 +27,6 @@ void lav::start() {
     lavLog::LAVLOG("lavAudioStream::start_thread_audio_stream\n");
     lavManager::start_thread_path_manager();
 
-    lavManager::setDst(3);
 }
 
 void lav::stop() {

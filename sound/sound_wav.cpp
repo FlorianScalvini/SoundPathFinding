@@ -153,12 +153,7 @@ void SoundWav::readData(short* data, int nbItem) {
     fseek(wav_file, sizeHeader, SEEK_SET);
     if(header.bits_per_sample == 16)
     {
-        short dataShort[nbItem];
-        fread(dataShort, sizeof(short), nbItem, wav_file);
-        for (int i = 0 ; i < nbItem /2 ; ++i)
-        {
-            data[i] = dataShort[i];
-        }
+        fread(data, sizeof(short), nbItem, wav_file);
     }
     else if(header.bits_per_sample == 8)
     {

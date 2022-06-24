@@ -4,7 +4,6 @@
 
 int lavAudioStream::_close_audio = 0;
 snd_pcm_t* lavAudioStream::playback_handle = 0;
-short* lavAudioStream::buf = (short*) calloc(256*2, sizeof(short));
 
 
 void lavAudioStream::release()
@@ -53,13 +52,12 @@ void lavAudioStream::init()
 	snd_pcm_hw_params_t *hw_params;
     unsigned int sampling_rate = AUDIO_SAMPLING_RATE;
     char* pcmOutputName = (char *)"default";
-    #ifdef DESKTOP
+
     int nbPeriod = 2;
     int periodSize = 256;//256;
-    snd_pcm_uframes_t bufferSize = 4096;//2048;//periodSize*nbPeriod;
-    #else
-    snd_pcm_uframes_t bufferSize = 2048;
-    #endif
+    snd_pcm_uframes_t bufferSize = 2048;//2048;//periodSize*nbPeriod;
+
+    short* buf = (short*) calloc(256*2, sizeof(short));
 
     float time = 0;
     for (int i = 0; i<256; i++) {
@@ -112,7 +110,7 @@ void lavAudioStream::init()
 			 snd_strerror (err));
 		exit (1);
 	}
-    #ifdef DESKTOP
+
     err = snd_pcm_hw_params_set_periods(playback_handle, hw_params, nbPeriod, 0);
 	if (err  == 0) {
         fprintf(stderr, "Error setting nb periods.\n");
@@ -124,7 +122,6 @@ void lavAudioStream::init()
 		fprintf(stderr, "Error setting period size.\n");
 		exit (1);
     }
-    #endif
 
     
     // Set buffer size (in frames). The resulting latency is given by 
