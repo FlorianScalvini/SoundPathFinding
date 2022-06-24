@@ -11,9 +11,10 @@
 class PathFinding {
 public:
     explicit PathFinding(Graph* graph);
-    int newPath(unsigned int src, unsigned int dst);
+    int newPath(unsigned int dst);
     Node* update();
     Node* getCurrentNode();
+    bool setCurrentNode(unsigned int src);
     bool changeToClosestNode(unsigned int label);
     void showPath();
 

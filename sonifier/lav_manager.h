@@ -18,10 +18,10 @@
 
 enum ENUM_STATE
 {
-    SCAN_ENV = 0,
-    WAIT_DST = 1,
-    NEAR_TARGET = 2,
-    WAIT_USER = 3,
+    INIT_STATE = 0,
+    SCAN_ENV = 1,
+    WAIT_DST = 2,
+    NEAR_TARGET = 3,
     IN_TRANSIT = 4,
     CHECK_NEIGHBOR = 5,
 };
@@ -33,7 +33,7 @@ public:
     static void setFirstNode(unsigned int src);
     static bool isVoiceControl();
 
-
+    static void searchFirstNode();
     static void waitDst();
     static void inTransit();
     static void nearSpecialTarget();

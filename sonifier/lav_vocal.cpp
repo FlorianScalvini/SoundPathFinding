@@ -4,14 +4,6 @@
 
 #include "lav_vocal.h"
 
-std::vector<const char* > soundFile = {
-        { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
-        { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
-        { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
-        { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
-        { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
-        { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" }
-};
 
 std::vector<SoundReader> lavVocal::sounds;
 SoundReader* lavVocal::ptrSound = nullptr;
@@ -33,7 +25,7 @@ void lavVocal::init()
     for(int i = 0; i < soundFile.size(); i++)
     {
         SoundReader newSound = SoundReader();
-        newSound.init(soundFile[0], SIZE_AUDIO_CHUNK_IN_SAMPLE);
+        newSound.init(soundFile[i], SIZE_AUDIO_CHUNK_IN_SAMPLE);
         sounds.emplace_back(newSound);
     }
 

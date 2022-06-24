@@ -10,6 +10,7 @@
 PathFinding::PathFinding(Graph* graph)
 {
     this->graph = graph;
+    this->currPosition = 0;
 }
 
 
@@ -60,9 +61,25 @@ Node* PathFinding::getCurrentNode()
         return nullptr;
 }
 
-int PathFinding::newPath(unsigned int src, unsigned int dst)
+bool PathFinding::setCurrentNode(unsigned int src)
 {
-    computeBFS(src, dst);
+    if(graph->getNode(src) != nullptr)
+    {
+        currPosition = src;
+        return true;
+    }
+    else
+    {
+        std::cout<<"This node is unknown." << std::endl;
+        return false;
+    }
+
+}
+
+
+int PathFinding::newPath(unsigned int dst)
+{
+    computeBFS(currPosition, dst);
     if(this->markerList.size() <= 0)
     {
         return this->markerList.size();

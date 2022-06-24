@@ -124,6 +124,20 @@ void lavManager::inTransit()
     lavSonifier::sonify(&outSonify);
 }
 
+void searchFirstNode()
+{
+    DataVideoProcessing dataOut = lavVideoProcessor::pull_data();
+    short depth = 0xFFFF;
+    int idxNode = 0xFFFFFFFF;
+    for(int i =0; i < dataOut.data_path.size(); i++)
+    {
+        if(depth > dataOut.data_path[i].distance)
+        {
+            depth = dataOut.data_path[i].distance;
+            idxNode = dataOut.data_path[i].label_i;
+        }
+    }
+}
 
 void lavManager::process()
 {
@@ -132,6 +146,9 @@ void lavManager::process()
         usleep(500);
     }
     switch (state) {
+        case INIT_STATE:
+            searchFirstNode();
+            break;
         case WAIT_DST:
             waitDst();
             break;
@@ -160,7 +177,7 @@ void lavManager::waitDst()
     if(!char_dst.empty() && std::all_of(char_dst.begin(), char_dst.end(), [](const char i){return std::isdigit(i);}))
     {
         lavManager::setDst(std::stoi(char_dst));
-        if(path->newPath(currentNode, dst));
+        if(path->newPath(dst));
         {
             path->showPath();
             state = IN_TRANSIT;
@@ -180,6 +197,7 @@ void lavManager::setDst(unsigned int dst) {
 
 
 void* lavManager::start_path_manager(void* args) {
+    lavVocal::start(0);
     lavVideoProcessor::startSound();
     while (!close_thread) {
         lavManager::process();
