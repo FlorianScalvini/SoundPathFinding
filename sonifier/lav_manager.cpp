@@ -80,6 +80,7 @@ void lavManager::scanEnv() {
 
 void lavManager::inTransit()
 {
+    std::cout<<"inTransir: "<<std::endl;
     lavVideoProcessor::startSound();
     cv::Mat output = cv::Mat(cv::Size(COLOR_FRAME_WIDTH, COLOR_FRAME_HEIGHT), CV_8UC1);
     output.setTo(cv::Scalar(0));
@@ -87,6 +88,7 @@ void lavManager::inTransit()
     PathOut* mrk = nullptr;
     for(auto pathData: dataOut.data_path)
     {
+        std::cout<<"Marker : " << pathData.distance << " "<<pathData.x_pixel<< " " << pathData.y_pixel <<" " <<pathData.label_i;
         /*
         if(path->changeToClosestNode(pathData.label_i))
         {
@@ -101,15 +103,16 @@ void lavManager::inTransit()
     }
     if(mrk != nullptr)
     {
-        for(int x = mrk->x_pixel - 7; x < mrk->x_pixel + 7; x++)
+        std::cout<<"Marker select: " << mrk->label_i <<std::endl;
+        for(int x = mrk->x_pixel - 10; x < mrk->x_pixel + 10; x++)
         {
-            for(int y = mrk->y_pixel - 7; y < mrk->y_pixel + 7; y++)
+            for(int y = mrk->y_pixel - 10; y < mrk->y_pixel + 10; y++)
             {
                 if(x >= 0 && y >= 0 && x < COLOR_FRAME_WIDTH && y < COLOR_FRAME_WIDTH)
                     output.at<unsigned char>(y, x) = 255;
             }
         }
-        if(mrk->distance < 1000)
+        if(mrk->distance < 800 && mrk->distance > 100)
         {
             std::cout<<"State : In transit -> Near target"<<std::endl;
             state = NEAR_TARGET;
@@ -127,6 +130,7 @@ void lavManager::process()
     {
         usleep(500);
     }
+    std::cout<<"New"<<std::endl;
     switch (state) {
         case WAIT_DST:
             waitDst();

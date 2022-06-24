@@ -129,6 +129,7 @@ void lavVideoProcessor::acquireAndProcessFrame() {
     Drawer::drawMarkers(&img, stagDetector.markers);
     DataVideoProcessing data;
     cv::GaussianBlur(_inputMat, _inputMat, cv::Size(3,3),1);
+
     for(auto const& mrk: stagDetector.markers)
     {
         short distance = _inputMat.at<unsigned short>((int)mrk.center.x, (int)mrk.center.y);
@@ -138,6 +139,7 @@ void lavVideoProcessor::acquireAndProcessFrame() {
     }
     push_data(data);
     cv::imshow("image", img);
+    cv::imshow("image_depth", _inputMat);
     cv::waitKey(1);
 }
 
