@@ -54,7 +54,7 @@ void PathFinding::computeBFS(unsigned int src, unsigned int dst)
 
 Node* PathFinding::getCurrentNode()
 {
-    if(this->currPosition >= 0)
+    if(this->currPosition >= 0 && this->currPosition < markerList.size())
         return  this->graph->getNode(markerList[this->currPosition]);
     else
         return nullptr;

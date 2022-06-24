@@ -32,16 +32,6 @@ int SoundReader::init(char* file, int sizechunks) {
     memset(bufferSound, 0, numberChunks*2*sizeAudioChunkSample*sizeof(short));
     auto* tempArray = new short [numberChunks * sizeAudioChunkSample];
     soundWav.readData(tempArray, sizeData);
-    for(int i = 0; i < numberChunks * sizeAudioChunkSample; i++)
-    {
-        bufferSound[2*i] = (short)tempArray[i];
-        bufferSound[2*i+1] = (short)tempArray[i];
-    }
-
-    this->currentChunkPtr = nullptr;
-    lastChunkPtr =  bufferSound + sizeAudioChunkSample * (numberChunks - 1);
-    std::cout<<sizeAudioChunkSample<<std::endl;
-    isInit = true;
     return EXIT_SUCCESS;
 }
 

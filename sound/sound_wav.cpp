@@ -147,47 +147,33 @@ Wav_header* SoundWav::getHeader()
     return &header;
 }
 
-void SoundWav::readData(float* data, int nbItem)
-{
+
+void SoundWav::readData(short* data, int nbItem) {
     FILE * wav_file = fopen(filename, "rb");
     fseek(wav_file, sizeHeader, SEEK_SET);
     if(header.bits_per_sample == 16)
     {
         short dataShort[nbItem];
         fread(dataShort, sizeof(short), nbItem, wav_file);
-        for (int ID_t = 0; ID_t<nbItem; ++ID_t)
-            data[ID_t] = (float) dataShort[ID_t] / (float)(INT16_MAX + 1);
+        for (int i = 0 ; i < nbItem /2 ; ++i)
+        {
+            data[i] = dataShort[i];
+        }
     }
     else if(header.bits_per_sample == 8)
     {
-        char dataChar[nbItem];
-        fread(dataChar, sizeof(char), nbItem, wav_file);
-        for (int ID_t = 0; ID_t<nbItem; ++ID_t)
-            data[ID_t]  =  dataChar[ID_t] / (float)(INT8_MAX + 1);
-    }
-    fclose(wav_file);
-}
+        char dataChar[nbItem / 2];
+        fread(dataChar, sizeof(char), sizeof(char) * nbItem /2 , wav_file);
+        for (int i = 0 ; i < nbItem /2 ; ++i)
+        {
+            data[i] = dataChar[i];
+        }
 
-template <typename T>
-void SoundWav::readData(T data, int nbItem) {
-    FILE * wav_file = fopen(filename, "rb");
-    fseek(wav_file, sizeHeader, SEEK_SET);
-    if(header.bits_per_sample == 16)
-    {
-        short dataShort[nbItem];
-        fread(dataShort, sizeof(short), nbItem*sizeof(short)/sizeof(data[0]), wav_file);
-    }
-    else if(header.bits_per_sample == 8)
-    {
-        char dataChar[nbItem];
-        fread(dataChar, sizeof(char), nbItem*sizeof(char)/sizeof(data[0]), wav_file);
     }
     fclose(wav_file);
 }
 
 
-template void SoundWav::readData<short*>(short*, int);
-template void SoundWav::readData<char*>(char*, int);
 
 
 int SoundWav::createWavFile(char *databasePath)

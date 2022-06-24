@@ -16,8 +16,12 @@ void lavVocal::init()
     sounds = std::vector<SoundReader>();
     sounds.clear();
     std::vector<char* > soundFile =     {
-            { "/home/florian/CLionProjects/SoundPathFinding/person44100.wav" },
-            { "/home/florian/CLionProjects/SoundPathFinding/Person44100.wav" }
+            { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
+            { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
+            { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
+            { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
+            { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
+            { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" }
     };
     for(int i = 0; i < soundFile.size(); i++)
     {
@@ -31,11 +35,12 @@ void lavVocal::init()
     sound = nullptr;
 };
 
-void lavVocal::push_buffer(unsigned int indice)
+void lavVocal::start(unsigned int indice)
 {
     idx = indice;
     pthread_mutex_lock(&_sound_mutex);
-    //sound = sounds.at(indice);
+    sound = &sounds[indice];
+    sound->start();
     pthread_mutex_unlock(&_sound_mutex);
 }
 
@@ -43,13 +48,13 @@ bool lavVocal::isReading() {
     if(sound == nullptr)
         return false;
     else
-        if(!sound->isReading())
-        {
-            sound == nullptr;
-            return false;
-        }
-        else
-            return true;
+    if(!sound->isReading())
+    {
+        sound == nullptr;
+        return false;
+    }
+    else
+        return true;
 }
 
 void* lavVocal::pull_buffer()

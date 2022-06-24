@@ -54,8 +54,7 @@ public:
     int addByteToWave(char* data, unsigned int nbByte);
     int createWavFile(char* databasePath);
     int readHeader();
-    template <typename T> void readData(T data, int nb_item);
-    void readData(float* data, int nb_item);
+    void readData(short* data, int nb_item);
     int getSizeData();
     int getSizeHeader();
     int getNbChannel();

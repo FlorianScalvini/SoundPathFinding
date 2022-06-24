@@ -17,7 +17,7 @@ class lavVocal {
 public:
     static void init();
     static void* pull_buffer();
-    static void push_buffer(unsigned int indice);
+    static void start(unsigned int indice);
     static bool isReading();
     static short* emptyBuffer;
 

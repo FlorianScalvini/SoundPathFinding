@@ -18,10 +18,10 @@ bool lavManager::close_thread;
 void lavManager::init()
 {
     state = WAIT_DST;
-    graph = new Graph("/home/florian/CLionProjects/SoundPathFinding/path/graph.txt");
+    graph = new Graph("/home/ubuntu/CLionProjects/pathFinder/path/graph.txt");
     graph->showGraph();
     path = new PathFinding(graph);
-    currentNode = 1;
+    currentNode = 0;
 }
 
 bool lavManager::isVoiceControl()
@@ -34,7 +34,7 @@ bool lavManager::isVoiceControl()
 
 void lavManager::nearSpecialTarget()
 {
-    lavVocal::push_buffer(-1);
+    lavVocal::start(-1);
     usleep(100000);
 }
 
@@ -47,12 +47,12 @@ void lavManager::nearTarget()
     if(currentNode == dst)
     {
         std::cout<<"Destination atteinte"<<std::endl;
-        lavVocal::push_buffer(3);
+        lavVocal::start(3);
         std::cout<<"State : Near target -> Wait Dst"<<std::endl;
         state = WAIT_DST;
     }
     else{
-        lavVocal::push_buffer(1);
+        lavVocal::start(1);
         state = SCAN_ENV;
         std::cout<<"State : Near target -> Scan env"<<std::endl;
     }
@@ -80,47 +80,48 @@ void lavManager::scanEnv() {
 
 void lavManager::inTransit()
 {
-    std::cout<<"inTransir: "<<std::endl;
-    lavVideoProcessor::startSound();
-    cv::Mat output = cv::Mat(cv::Size(COLOR_FRAME_WIDTH, COLOR_FRAME_HEIGHT), CV_8UC1);
-    output.setTo(cv::Scalar(0));
+
+
+
     DataVideoProcessing dataOut = lavVideoProcessor::pull_data();
     PathOut* mrk = nullptr;
-    for(auto pathData: dataOut.data_path)
+    for(int i =0; i < dataOut.data_path.size(); i++)
     {
-        std::cout<<"Marker : " << pathData.distance << " "<<pathData.x_pixel<< " " << pathData.y_pixel <<" " <<pathData.label_i;
-        /*
-        if(path->changeToClosestNode(pathData.label_i))
+        if(dataOut.data_path[i].label_i == path->getCurrentNode()->label)
         {
-            mrk = &pathData;
-        }
-         */
-        if(pathData.label_i == 0)
-        {
-            mrk = &pathData;
+            mrk = &dataOut.data_path[i];
             break;
         }
     }
+
+    cv::Mat outSonify = cv::Mat(cv::Size(COLOR_FRAME_WIDTH, COLOR_FRAME_HEIGHT), CV_8UC1);
+    outSonify.setTo(cv::Scalar(0));
     if(mrk != nullptr)
     {
-        std::cout<<"Marker select: " << mrk->label_i <<std::endl;
-        for(int x = mrk->x_pixel - 10; x < mrk->x_pixel + 10; x++)
-        {
-            for(int y = mrk->y_pixel - 10; y < mrk->y_pixel + 10; y++)
-            {
-                if(x >= 0 && y >= 0 && x < COLOR_FRAME_WIDTH && y < COLOR_FRAME_WIDTH)
-                    output.at<unsigned char>(y, x) = 255;
-            }
-        }
+
+        std::cout<<"Marker select: " << mrk->label_i <<" " <<mrk->x_pixel<< " " << mrk->y_pixel <<" "<<mrk->distance <<std::endl;
         if(mrk->distance < 800 && mrk->distance > 100)
         {
             std::cout<<"State : In transit -> Near target"<<std::endl;
             state = NEAR_TARGET;
         }
+        else
+        {
+            for(int x = mrk->x_pixel - 10; x < mrk->x_pixel + 10; x++)
+            {
+                for(int y = mrk->y_pixel - 10; y < mrk->y_pixel + 10; y++)
+                {
+                    if(x >= 0 && y >= 0 && x < COLOR_FRAME_WIDTH && y < COLOR_FRAME_WIDTH)
+                        outSonify.at<unsigned char>(y, x) = 255;
+                }
+            }
+        }
+
     }
-    cv::resize(output, output, cv::Size(FRAME_WIDTH_SONIFIED, FRAME_HEIGHT_SONIFIED), 0, 0, 0);
-    cv::imshow("sonify", output);
-    //lavSonifier::sonify(&output);
+    cv::resize(outSonify, outSonify, cv::Size(FRAME_WIDTH_SONIFIED, FRAME_HEIGHT_SONIFIED), 0, 0, 0);
+    cv::imshow("sonify", outSonify);
+    cv::waitKey(1);
+    lavSonifier::sonify(&outSonify);
 }
 
 
@@ -130,7 +131,6 @@ void lavManager::process()
     {
         usleep(500);
     }
-    std::cout<<"New"<<std::endl;
     switch (state) {
         case WAIT_DST:
             waitDst();
@@ -152,7 +152,7 @@ void lavManager::process()
 void lavManager::waitDst()
 {
     lavVideoProcessor::stopSound();
-    lavVocal::push_buffer(0);
+    lavVocal::start(0);
     std::string char_dst;
     std::cout<<"Destination: "<<std::endl;
     std::getline(std::cin, char_dst);
@@ -180,6 +180,7 @@ void lavManager::setDst(unsigned int dst) {
 
 
 void* lavManager::start_path_manager(void* args) {
+    lavVideoProcessor::startSound();
     while (!close_thread) {
         lavManager::process();
     }

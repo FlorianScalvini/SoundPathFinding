@@ -6,7 +6,7 @@ int main() {
     //lav::setDefaultDatabasePath("/home/florian/data/boulot/recherche/lead/development/C++/sonifier/sonifier/res/HRTF_SCUT020_180H_90V.wav");
     lav::setDefaultDatabasePath("/home/florian/CLionProjects/sonifier/res/lav_default_sound_db.wav");
 #else
-    lav::setDefaultDatabasePath("/home/florian/CLionProjects/sonifier/res/lav_default_sound_db.wav");
+    lav::setDefaultDatabasePath("/home/ubuntu/CLionProjects/sonifier/res/lav_default_sound_db.wav");
     //lav::setDefaultDatabasePath("/home/ubuntu/ubuntu/sonifier/res/HRTF_SCUT020_180H_90V.wav");
 #endif
     lav::start();

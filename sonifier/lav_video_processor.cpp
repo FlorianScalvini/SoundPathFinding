@@ -104,8 +104,7 @@ DataVideoProcessing lavVideoProcessor::pull_data()
     pthread_mutex_lock(&mutex_data_out);
     if(!_silence)
         dataOut = transData;
-    else
-        _newValue = false;
+    _newValue = false;
     pthread_mutex_unlock(&mutex_data_out);
     return dataOut;
 }
@@ -132,15 +131,11 @@ void lavVideoProcessor::acquireAndProcessFrame() {
 
     for(auto const& mrk: stagDetector.markers)
     {
-        short distance = _inputMat.at<unsigned short>((int)mrk.center.x, (int)mrk.center.y);
-        std::cout<<distance<<std::endl;
+        unsigned short distance = _inputMat.at<unsigned short>((int)mrk.center.x, (int)mrk.center.y);
         data.data_path.push_back({(unsigned int)mrk.center.x, (unsigned int)mrk.center.y, distance, mrk.id});
 
     }
     push_data(data);
-    cv::imshow("image", img);
-    cv::imshow("image_depth", _inputMat);
-    cv::waitKey(1);
 }
 
 void* lavVideoProcessor::start_video_stream(void* args) {

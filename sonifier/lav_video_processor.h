@@ -38,7 +38,7 @@
 struct PathOut{
     unsigned int x_pixel;
     unsigned int y_pixel;
-    int distance;
+    unsigned short distance;
     int label_i;
 };
 
