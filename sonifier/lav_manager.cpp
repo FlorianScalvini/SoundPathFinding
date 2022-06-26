@@ -17,7 +17,7 @@ bool lavManager::close_thread;
 
 void lavManager::init()
 {
-    state = WAIT_DST;
+    state = INIT_STATE;
     graph = new Graph("/home/ubuntu/CLionProjects/pathFinder/path/graph.txt");
     graph->showGraph();
     path = new PathFinding(graph);
@@ -34,8 +34,9 @@ bool lavManager::isVoiceControl()
 
 void lavManager::nearSpecialTarget()
 {
-    lavVocal::start(-1);
-    usleep(100000);
+    currentNode = path->getCurrentNode()->label;
+    lavVocal::start(1);
+    state = NEAR_TARGET;
 }
 
 void lavManager::nearTarget()
@@ -81,8 +82,6 @@ void lavManager::scanEnv() {
 void lavManager::inTransit()
 {
 
-
-
     DataVideoProcessing dataOut = lavVideoProcessor::pull_data();
     PathOut* mrk = nullptr;
     for(int i =0; i < dataOut.data_path.size(); i++)
@@ -102,8 +101,18 @@ void lavManager::inTransit()
         std::cout<<"Marker select: " << mrk->label_i <<" " <<mrk->x_pixel<< " " << mrk->y_pixel <<" "<<mrk->distance <<std::endl;
         if(mrk->distance < 800 && mrk->distance > 100)
         {
-            std::cout<<"State : In transit -> Near target"<<std::endl;
-            state = NEAR_TARGET;
+            if(graph->getNode(mrk->label_i)->classe != 0)
+            {
+                if(mrk->distance < 600)
+                {
+                    std::cout<<"State : In transit -> Near special target"<<std::endl;
+                    state = NEAR_TARGET_SPECIAL;
+                }
+            }
+            else{
+                std::cout<<"State : In transit -> Near target"<<std::endl;
+                state = NEAR_TARGET;
+            }
         }
         else
         {
@@ -128,7 +137,7 @@ void lavManager::searchFirstNode()
 {
     DataVideoProcessing dataOut = lavVideoProcessor::pull_data();
     short depth = 0xFFFF;
-    int idxNode = 0xFFFFFFFF;
+    int idxNode = -1;
     for(int i =0; i < dataOut.data_path.size(); i++)
     {
         if(depth > dataOut.data_path[i].distance)
@@ -136,6 +145,13 @@ void lavManager::searchFirstNode()
             depth = dataOut.data_path[i].distance;
             idxNode = dataOut.data_path[i].label_i;
         }
+    }
+
+    if(idxNode != -1 && path->setCurrentNode(idxNode))
+    {
+        currentNode = path->getCurrentNode()->label; // is equal to idxNode
+        std::cout<<"First marker found !" << std::endl;
+        state = WAIT_DST;
     }
 }
 
@@ -146,14 +162,17 @@ void lavManager::process()
         usleep(500);
     }
     switch (state) {
-        case INIT_STATE:
-            searchFirstNode();
-            break;
         case WAIT_DST:
             waitDst();
             break;
+        case INIT_STATE:
+            searchFirstNode();
+            break;
         case IN_TRANSIT:
             inTransit();
+            break;
+        case NEAR_TARGET_SPECIAL:
+            nearSpecialTarget();
             break;
         case NEAR_TARGET:
             nearTarget();
@@ -182,7 +201,6 @@ void lavManager::waitDst()
             path->showPath();
             state = IN_TRANSIT;
             lavVideoProcessor::startSound();
-            path->update();
             std::cout<<"Start sonification vers cible "<< path->getCurrentNode()->label<< std::endl;
         }
     }

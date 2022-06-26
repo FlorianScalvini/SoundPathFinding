@@ -45,6 +45,7 @@ struct PathOut{
 struct DataVideoProcessing
 {
     std::vector<PathOut> data_path;
+    unsigned int sector[5] = {0,0,0,0,0};
 };
 
 

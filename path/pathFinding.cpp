@@ -77,10 +77,10 @@ bool PathFinding::setCurrentNode(unsigned int src)
 }
 
 
-int PathFinding::newPath(unsigned int dst)
+unsigned int PathFinding::newPath(unsigned int dst)
 {
     computeBFS(currPosition, dst);
-    if(this->markerList.size() <= 0)
+    if(this->markerList.size() >= 0)
     {
         return this->markerList.size();
     }
@@ -117,7 +117,7 @@ Node* PathFinding::update()
 
 void PathFinding::showPath()
 {
-    for(int i = currPosition; i < markerList.size(); i++)
+    for(unsigned int i = currPosition; i < markerList.size(); i++)
     {
         std::cout<<markerList[i];
         if(i < (markerList.size()-1))

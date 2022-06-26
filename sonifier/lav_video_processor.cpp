@@ -121,19 +121,34 @@ void lavVideoProcessor::push_data(DataVideoProcessing data) {
 void lavVideoProcessor::acquireAndProcessFrame() {
 
     cv::Mat img = cv::Mat(sizeColor, CV_8UC1);
+    cv::Mat imgResize;
     _inputMatColor = _capture->getNextFrameColor();
     _inputMat = _capture->getNextFrame();
     cv::cvtColor(_inputMatColor, img, cv::COLOR_BGR2GRAY);
     stagDetector.detectMarkers(img);
     Drawer::drawMarkers(&img, stagDetector.markers);
     DataVideoProcessing data;
-    cv::GaussianBlur(_inputMat, _inputMat, cv::Size(3,3),1);
+    //cv::GaussianBlur(_inputMat, _inputMat, cv::Size(3,3),1);
+
 
     for(auto const& mrk: stagDetector.markers)
     {
         unsigned short distance = _inputMat.at<unsigned short>((int)mrk.center.x, (int)mrk.center.y);
         data.data_path.push_back({(unsigned int)mrk.center.x, (unsigned int)mrk.center.y, distance, mrk.id});
 
+    }
+
+    cv::resize(_inputMat, imgResize, cv::Size(320,120));
+    int rangeSector = 320 / 5;
+    for(int i = 0; i < 320; i++)
+    {
+        for(int j = 0; j < 160; j++)
+        {
+            if(imgResize.at<unsigned short>(j,i) < 5000 && imgResize.at<unsigned short>(j,i) > 400)
+            {
+                data.sector[i/rangeSector]++;
+            }
+        }
     }
     push_data(data);
 }

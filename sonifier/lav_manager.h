@@ -24,13 +24,13 @@ enum ENUM_STATE
     NEAR_TARGET = 3,
     IN_TRANSIT = 4,
     CHECK_NEIGHBOR = 5,
+    NEAR_TARGET_SPECIAL = 6
 };
 
 class lavManager {
 public:
     static void init();
     static void setDst(unsigned int dst);
-    static void setFirstNode(unsigned int src);
     static bool isVoiceControl();
 
     static void searchFirstNode();
