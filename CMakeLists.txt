@@ -54,7 +54,7 @@ include_directories(
 add_library(
         LibStag SHARED
         ${MARKER_FILE1}
-        ${MARKER_FILE2})
+        ${MARKER_FILE2} marker/ED/GaussianBlur.cu)
 target_link_libraries(
         LibStag
         ${OpenCV_LIBS} ${realsense2_LIBRARY}

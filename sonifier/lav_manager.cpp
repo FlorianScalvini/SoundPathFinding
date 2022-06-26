@@ -124,7 +124,7 @@ void lavManager::inTransit()
     lavSonifier::sonify(&outSonify);
 }
 
-void searchFirstNode()
+void lavManager::searchFirstNode()
 {
     DataVideoProcessing dataOut = lavVideoProcessor::pull_data();
     short depth = 0xFFFF;

@@ -2322,8 +2322,8 @@ EdgeMap *DoDetectEdgesByED(short *gradImg, unsigned char *dirImg, int width, int
   ComputeAnchorPoints(gradImg, dirImg, map, GRADIENT_THRESH, ANCHOR_THRESH, SCAN_INTERVAL);
 
   /*------------ JOIN ANCHORS -------------------*/
-  JoinAnchorPointsUsingSortedAnchors(gradImg, dirImg, map, GRADIENT_THRESH, MIN_PATH_LEN);
-//  JoinAnchorPoints(gradImg, dirImg, map, GRADIENT_THRESH, MIN_PATH_LEN);
+  //JoinAnchorPointsUsingSortedAnchors(gradImg, dirImg, map, GRADIENT_THRESH, MIN_PATH_LEN);
+   JoinAnchorPoints(gradImg, dirImg, map, GRADIENT_THRESH, MIN_PATH_LEN);
 
   return map;
 } //DoDetectEdgesByED

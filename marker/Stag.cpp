@@ -49,9 +49,6 @@ void Stag::detectMarkers(Mat inImage)
 
 void Stag::logResults(const string& path)
 {
-    /*
-    cv::Mat grayMat;
-    cv::cvtColor(image, grayMat, cv::COLOR_GRAY2BGR);
 	drawer.drawEdgeMap(path + "1 edges.png", image, edInterface.getEdgeMap());
 	drawer.drawLines(path + "2 lines.png", image, edInterface.getEDLines());
 	drawer.drawCorners(path + "3 corners.png", image, quadDetector.getCornerGroups());
@@ -61,7 +58,7 @@ void Stag::logResults(const string& path)
 	drawer.drawMarkers(path + "6 markers.png", image, markers);
 	if (keepLogs)
 		drawer.drawQuads(path + "7 false quads.png", image, falseCandidates);
-	drawer.drawEllipses(path + "8 ellipses.png", image, markers);*/
+	drawer.drawEllipses(path + "8 ellipses.png", image, markers);
 }
 
 

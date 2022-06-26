@@ -16,7 +16,7 @@ class Drawer
 {
 	void colorAPixel(cv::Mat& img, int x, int y, cv::Scalar color, int dotWidth);
 
-public:/*
+public:
 	// draws edge segments
 	void drawEdgeMap(const string& path, cv::Mat image, EdgeMap* edgeMap);
 
@@ -46,7 +46,7 @@ public:/*
 
     // draws quads
     void drawQuads(cv::Mat* image, const vector<Marker> &markers);
-*/
+
     // draws markers
     static void drawMarkers(cv::Mat* image, const vector<Marker> &markers);
 };
