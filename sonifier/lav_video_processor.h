@@ -5,7 +5,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <opencv2/gp
+
 //#include <opencv2/ocl/ocl.hpp>
 #include "Drawer.h"
 #include "lav_manager.h"
@@ -40,13 +40,14 @@ struct PathOut{
     unsigned int x_pixel;
     unsigned int y_pixel;
     unsigned short distance;
+    int angle;
     int label_i;
 };
 
 struct DataVideoProcessing
 {
     std::vector<PathOut> data_path;
-    unsigned int sector[5] = {0,0,0,0,0};
+    //unsigned int sector[5] = {0,0,0,0,0};
 };
 
 
@@ -109,6 +110,8 @@ public:
         static pthread_mutex_t mutex_data_out;
         static void startSound();
         static void stopSound();
+        static float ratioWidth;
+        static float ratioHeight;
 
 };
 

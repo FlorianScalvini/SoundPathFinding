@@ -11,10 +11,11 @@
 class SoundReader {
 public:
     explicit SoundReader();
-    void* pull_buffer();
+    virtual void* pull_buffer();
+    virtual void start(unsigned int idx){};
     void start();
-    int init(char* file, int sizechunks);
-    bool isReading();
+    virtual int init(char* file, int sizechunks);
+    virtual bool isReading();
     int sizeAudioChunkSample;
     int sizeData;
     short *bufferSound;

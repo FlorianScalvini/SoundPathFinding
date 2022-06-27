@@ -6,6 +6,7 @@
 
 
 std::vector<SoundReader> lavVocal::sounds;
+SoundReaderHrtf lavVocal::soundHrtf;
 SoundReader* lavVocal::ptrSound = nullptr;
 pthread_mutex_t lavVocal::_sound_mutex = PTHREAD_MUTEX_INITIALIZER;
 short* lavVocal::emptyBuffer;
@@ -15,13 +16,16 @@ void lavVocal::init()
     sounds = std::vector<SoundReader>();
     sounds.clear();
     std::vector<char* > soundFile =     {
-            { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
-            { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
-            { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
-            { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
-            { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" },
-            { "/home/ubuntu/CLionProjects/pathFinder/person44100.wav" }
+            { "/home/ubuntu/CLionProjects/pathFinder/res/person44100.wav" },
+            { "/home/ubuntu/CLionProjects/pathFinder/res/person44100.wav" },
+            { "/home/ubuntu/CLionProjects/pathFinder/res/person44100.wav" },
+            { "/home/ubuntu/CLionProjects/pathFinder/res/person44100.wav" },
+            { "/home/ubuntu/CLionProjects/pathFinder/res/person44100.wav" },
+            { "/home/ubuntu/CLionProjects/pathFinder/res/person44100.wav" }
     };
+
+    soundHrtf.init("/home/ubuntu/CLionProjects/pathFinder/res/hrtf_re.wav", SIZE_AUDIO_CHUNK_IN_SAMPLE);
+
     for(int i = 0; i < soundFile.size(); i++)
     {
         SoundReader newSound = SoundReader();
@@ -34,12 +38,21 @@ void lavVocal::init()
     ptrSound = nullptr;
 };
 
-void lavVocal::start(unsigned int indice)
+void lavVocal::startSound(unsigned int indice)
 {
     idx = indice;
     pthread_mutex_lock(&_sound_mutex);
     ptrSound = &sounds[indice];
     ptrSound->start();
+    pthread_mutex_unlock(&_sound_mutex);
+}
+
+void lavVocal::startHRTF(unsigned int indice)
+{
+
+    pthread_mutex_lock(&_sound_mutex);
+    ptrSound = &soundHrtf;
+    ptrSound->start(indice);
     pthread_mutex_unlock(&_sound_mutex);
 }
 

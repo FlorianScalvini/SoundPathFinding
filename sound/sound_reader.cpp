@@ -41,6 +41,7 @@ int SoundReader::init(char* file, int sizechunks) {
         bufferSound[2*i] = tempArray[i];
         bufferSound[2*i + 1] = tempArray[i];
     }
+
     currentChunkPtr = nullptr;
     lastChunkPtr = bufferSound + (numberChunks-1)*sizeAudioChunkSample;
     isInit = true;
@@ -60,7 +61,7 @@ void SoundReader::start()
     currentChunkPtr = bufferSound;
 }
 
-void* SoundReader::pull_buffer()
+ void* SoundReader::pull_buffer()
 {
     void* pointer_result = currentChunkPtr;
     if(currentChunkPtr == lastChunkPtr)

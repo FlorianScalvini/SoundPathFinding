@@ -38,6 +38,8 @@ int lavVideoProcessor::_close_video = 0;
 pthread_mutex_t lavVideoProcessor::mutex_data_out = PTHREAD_MUTEX_INITIALIZER;
 //pthread_t lavVideoProcessor::thread_video_processing;
 
+float lavVideoProcessor::ratioWidth = COLOR_FRAME_WIDTH / DEPTH_FRAME_WIDTH;
+float lavVideoProcessor::ratioHeight = COLOR_FRAME_HEIGHT / DEPTH_FRAME_HEIGHT;
 
 #ifdef OBJECT_DETECTION
 std::map<unsigned int, std::vector<ObjectBoundingBox>> lavVideoProcessor::_detOutput = {};
@@ -164,7 +166,7 @@ void lavVideoProcessor::frameDifferencing()
 void lavVideoProcessor::acquireAndProcessFrame() {
 
     _inputMat = _capture->getNextFrame();
-    frameDifferencing();
+    //frameDifferencing();
     _outputMat.setTo(cv::Scalar(0));
 
     cv::Mat img = cv::Mat(sizeColor, CV_8UC1);
@@ -179,10 +181,13 @@ void lavVideoProcessor::acquireAndProcessFrame() {
 
     for(auto const& mrk: stagDetector.markers)
     {
-        ////// ATTT
-        unsigned short distance = _inputMat.at<unsigned short>((int)mrk.center.y, (int)mrk.center.x);
-        data.data_path.push_back({(unsigned int)mrk.center.x, (unsigned int)mrk.center.y, distance, mrk.id});
+        int x = (int)(mrk.center.x / ratioWidth);
+        int y = (int)(mrk.center.y / ratioHeight);
+        int angle = 90 + lavVideoCapture::pixelToAng(x, FOV_X, COLOR_FRAME_WIDTH);
 
+        unsigned short distance = _inputMat.at<unsigned short>(y, x);
+        std::cout << angle << " " << x << " " << y << " "<< distance<< std::endl;
+        data.data_path.push_back({(unsigned int)mrk.center.x, (unsigned int)mrk.center.y, distance, angle,mrk.id});
     }
 
     /*

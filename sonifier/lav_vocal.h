@@ -6,6 +6,7 @@
 #define STAG_LAV_VOCAL_H
 
 #include "../sound/sound_reader.h"
+#include "../sound/sound_reader_hrtf.h"
 #include "lav_constants.h"
 #include <vector>
 #include <map>
@@ -16,13 +17,15 @@ class lavVocal {
 public:
     static void init();
     static void* pull_buffer();
-    static void start(unsigned int indice);
+    static void startSound(unsigned int indice);
+    static void startHRTF(unsigned int indice);
     static bool isReading();
     static short* emptyBuffer;
 
     static int idx;
     static pthread_mutex_t _sound_mutex;
     static std::vector<SoundReader> sounds;
+    static SoundReaderHrtf soundHrtf;
     static SoundReader* ptrSound;
 
 
