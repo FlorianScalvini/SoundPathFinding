@@ -52,7 +52,7 @@ void lavVocal::startHRTF(unsigned int indice)
 
     pthread_mutex_lock(&_sound_mutex);
     ptrSound = &soundHrtf;
-    ptrSound->start(indice);
+    soundHrtf.start(indice);
     pthread_mutex_unlock(&_sound_mutex);
 }
 

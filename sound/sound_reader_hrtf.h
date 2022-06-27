@@ -10,7 +10,7 @@
 class SoundReaderHrtf : public SoundReader{
 public:
     SoundReaderHrtf();
-    void start(unsigned int idx) override;
+    void start(unsigned int idx);
     int init(char* file, int sizechunks) override;
 
 private:

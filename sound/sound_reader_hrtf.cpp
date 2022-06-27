@@ -41,15 +41,15 @@ int SoundReaderHrtf::init(char* file, int sizechunks) {
 }
 
 void SoundReaderHrtf::start(unsigned int idx)
-{
-
+{std::cout<<"START "<< idx <<std::endl;
     if(idx > 180)
     {
         printf("%i is greater than 179\n");
         return;
     }
     int offset = round((float) idx / (float) INCRE_ANGLE);
-    currentChunkPtr = bufferSound + offset*sizeSample;
-    lastChunkPtr = bufferSound + offset*(sizeSample + 1) - sizeAudioChunkSample;;
+    currentChunkPtr = bufferSound;
+    lastChunkPtr = bufferSound + sizeSample - sizeAudioChunkSample;
+    std::cout<<"END "<< idx <<std::endl;
 }
 

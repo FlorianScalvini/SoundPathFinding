@@ -135,10 +135,10 @@ void lavManager::inTransit()
                 }
             }*/
         }
-
+        lavVocal::startHRTF(mrk->angle);
     }
 
-    //lavVocal::startHRTF(mrk->angle);
+
 
     //cv::resize(outSonify, outSonify, cv::Size(FRAME_WIDTH_SONIFIED, FRAME_HEIGHT_SONIFIED), 0, 0, 0);
     //cv::imshow("sonify", outSonify);

@@ -63,6 +63,7 @@ void SoundReader::start()
 
  void* SoundReader::pull_buffer()
 {
+    std::cout<<"PULL !"<<std::endl;
     void* pointer_result = currentChunkPtr;
     if(currentChunkPtr == lastChunkPtr)
     {
