@@ -5,6 +5,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/gp
 //#include <opencv2/ocl/ocl.hpp>
 #include "Drawer.h"
 #include "lav_manager.h"
@@ -65,8 +66,20 @@ public:
         static Detecteur* _detecteur;
         #endif
 
+        #ifdef DEPTH_VIDEOPROCESSING
+        static cv::Mat currentGoodPixelsMask;
+        static cv::Mat previousGoodPixelsMask;
+        static cv::Mat currentAndPreviousGoodPixelsMask;
+        static cv::Mat newGoodPixelsMask;
+        static cv::Mat depthProximityAlarmMask;
+        static cv::Mat frameDifferencingMask;
+        static cv::Mat selectedFrameDifferencing;
+        static cv::Mat finalMaskDepth;
+        #endif
 
-        static cv::Mat _inputMat;
+
+
+    static cv::Mat _inputMat;
         static cv::Mat _inputMatColor;
         static cv::Mat _tmpMat;
 		static cv::Mat _outputMat;
@@ -81,8 +94,9 @@ public:
         static bool _firstFrame;
         static int _close_video;
         static bool _newValue;
+        static bool performStag;
 	public:
-
+        static void frameDifferencing();
 	    static void init();
 	    static void release();
 	    static void startOrStopSound();

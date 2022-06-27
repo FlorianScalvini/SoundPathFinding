@@ -15,6 +15,20 @@ cv::Mat lavVideoProcessor::_mOutputRGBA;
 cv::Mat lavVideoProcessor::_previousMat;
 cv::Mat lavVideoProcessor::_outputMatForDisplay;
 DataVideoProcessing lavVideoProcessor::transData;
+
+cv::Size size(320, 240);//SHORT_RANGE
+
+#ifdef DEPTH_VIDEOPROCESSING
+cv::Mat lavVideoProcessor::currentGoodPixelsMask = cv::Mat(size, CV_8UC1);
+cv::Mat lavVideoProcessor::previousGoodPixelsMask = cv::Mat(size, CV_8UC1);
+cv::Mat lavVideoProcessor::currentAndPreviousGoodPixelsMask = cv::Mat(size, CV_8UC1);
+cv::Mat lavVideoProcessor::newGoodPixelsMask = cv::Mat(size, CV_8UC1);
+cv::Mat lavVideoProcessor::depthProximityAlarmMask = cv::Mat(size, CV_8UC1);
+cv::Mat lavVideoProcessor::frameDifferencingMask = cv::Mat(size, CV_8UC1);
+cv::Mat lavVideoProcessor::selectedFrameDifferencing = cv::Mat(size, CV_8UC1);
+cv::Mat lavVideoProcessor::finalMaskDepth = cv::Mat(size, CV_8UC1);
+#endif
+
 bool lavVideoProcessor::_newValue;
 lavVideoCapture* lavVideoProcessor::_capture = nullptr;
 
@@ -37,6 +51,7 @@ Sort lavVideoProcessor::_sort;
 
 #ifdef PATH_MARKER
 Stag lavVideoProcessor::stagDetector = Stag(15, 7, false);
+bool lavVideoProcessor::performStag;
 #endif
 
 
@@ -117,13 +132,43 @@ void lavVideoProcessor::push_data(DataVideoProcessing data) {
 }
 
 
+void lavVideoProcessor::frameDifferencing()
+{
+    if (_firstFrame) {
+        _firstFrame = false;
+        _previousMat = _inputMat.clone();
+        _outputMat = _inputMat.clone();
+        _outputMatForDisplay = _inputMat.clone();
+    }
+    for(int j = 0; j < _inputMat.rows; j++)
+    {
+        for( int i = 0; i < _inputMat.cols; i++)
+        {
+            if(_inputMat.at<unsigned char>(j,i) == 255
+               || _previousMat.at<unsigned char>(j,i) == 255
+               || _inputMat.at<unsigned char>(j,i) == 0)
+                frameDifferencingMask.at<unsigned char>(j,i) = 0;
+            else
+                frameDifferencingMask.at<unsigned char>(j,i) = abs(_inputMat.at<unsigned char>(j,i) - _previousMat.at<unsigned char>(j,i));
+        }
+    }
+    _inputMat.copyTo(_previousMat);
+    cv::GaussianBlur(frameDifferencingMask, frameDifferencingMask, cv::Size(3,3), 2.0, 2.0);
+    cv::threshold(frameDifferencingMask, frameDifferencingMask, MIN_GRAYSCALE_SONIFICATION, 1, cv::THRESH_BINARY);
+    cv::threshold(_inputMat, depthProximityAlarmMask, 215, 1, cv::THRESH_BINARY);
+    finalMaskDepth = frameDifferencingMask+depthProximityAlarmMask;
+    cv::multiply(frameDifferencingMask, finalMaskDepth, _outputMat);
+    cv::resize(_outputMat, _outputMat, cv::Size(FRAME_WIDTH_SONIFIED, FRAME_HEIGHT_SONIFIED), 0, 0, 0);
+}
 
 void lavVideoProcessor::acquireAndProcessFrame() {
 
-    cv::Mat img = cv::Mat(sizeColor, CV_8UC1);
-    cv::Mat imgResize;
-    _inputMatColor = _capture->getNextFrameColor();
     _inputMat = _capture->getNextFrame();
+    frameDifferencing();
+    _outputMat.setTo(cv::Scalar(0));
+
+    cv::Mat img = cv::Mat(sizeColor, CV_8UC1);
+    _inputMatColor = _capture->getNextFrameColor();
     cv::cvtColor(_inputMatColor, img, cv::COLOR_BGR2GRAY);
     stagDetector.detectMarkers(img);
     Drawer::drawMarkers(&img, stagDetector.markers);
@@ -131,14 +176,16 @@ void lavVideoProcessor::acquireAndProcessFrame() {
     //cv::GaussianBlur(_inputMat, _inputMat, cv::Size(3,3),1);
 
 
+
     for(auto const& mrk: stagDetector.markers)
     {
-        unsigned short distance = _inputMat.at<unsigned short>((int)mrk.center.x, (int)mrk.center.y);
+        ////// ATTT
+        unsigned short distance = _inputMat.at<unsigned short>((int)mrk.center.y, (int)mrk.center.x);
         data.data_path.push_back({(unsigned int)mrk.center.x, (unsigned int)mrk.center.y, distance, mrk.id});
 
     }
 
-    cv::resize(_inputMat, imgResize, cv::Size(320,120));
+    /*
     int rangeSector = 320 / 5;
     for(int i = 0; i < 320; i++)
     {
@@ -149,7 +196,7 @@ void lavVideoProcessor::acquireAndProcessFrame() {
                 data.sector[i/rangeSector]++;
             }
         }
-    }
+    }*/
     push_data(data);
 }
 

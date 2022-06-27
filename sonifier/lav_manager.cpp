@@ -98,8 +98,7 @@ void lavManager::inTransit()
     if(mrk != nullptr)
     {
 
-        std::cout<<"Marker select: " << mrk->label_i <<" " <<mrk->x_pixel<< " " << mrk->y_pixel <<" "<<mrk->distance <<std::endl;
-        if(mrk->distance < 800 && mrk->distance > 100)
+        std::cout<<"Marker select: " << mrk->label_i <<" " <<mrk->x_pixel<< " " << mrk->y_pixel <<" "<<mrk->distance <<std::endl;Updateif(mrk->distance < 1000 && mrk->distance > 100)
         {
             if(graph->getNode(mrk->label_i)->classe != 0)
             {
@@ -136,7 +135,7 @@ void lavManager::inTransit()
 void lavManager::searchFirstNode()
 {
     DataVideoProcessing dataOut = lavVideoProcessor::pull_data();
-    short depth = 0xFFFF;
+    unsigned short depth = 0xFFFF;
     int idxNode = -1;
     for(int i =0; i < dataOut.data_path.size(); i++)
     {
@@ -149,7 +148,7 @@ void lavManager::searchFirstNode()
 
     if(idxNode != -1 && path->setCurrentNode(idxNode))
     {
-        currentNode = path->getCurrentNode()->label; // is equal to idxNode
+        currentNode = idxNode;
         std::cout<<"First marker found !" << std::endl;
         state = WAIT_DST;
     }
