@@ -48,7 +48,7 @@ struct PathOut{
 struct DataVideoProcessing
 {
     std::vector<PathOut> data_path;
-    cv::Mat sonify;
+    cv::Mat sonify = cv::Mat(cv::Size(FRAME_WIDTH_SONIFIED, FRAME_HEIGHT_SONIFIED), CV_8UC1);
     //unsigned int sector[5] = {0,0,0,0,0};
 };
 
@@ -82,13 +82,8 @@ public:
 
 
 
-    static cv::Mat _inputMat;
+        static cv::Mat _inputMat;
         static cv::Mat _inputMatColor;
-        static cv::Mat _tmpMat;
-		static cv::Mat _outputMat;
-		static cv::Mat _mOutputRGBA;
-		static cv::Mat _previousMat;
-		static cv::Mat _outputMatForDisplay;
         static DataVideoProcessing transData;
 
         static Stag stagDetector;
@@ -97,7 +92,6 @@ public:
         static bool _firstFrame;
         static int _close_video;
         static bool _newValue;
-        static bool performStag;
 	public:
 	    static void init();
 	    static void release();
@@ -109,10 +103,11 @@ public:
 	    static void* start_video_stream(void* args);
         static void start_thread_video_stream();
         static pthread_mutex_t mutex_data_out;
-        static void startSound();
-        static void stopSound();
+        static void start();
+        static void stop();
         static float ratioWidth;
         static float ratioHeight;
+
 
 };
 

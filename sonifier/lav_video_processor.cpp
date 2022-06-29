@@ -9,11 +9,7 @@ cv::Size sizeColor(COLOR_FRAME_WIDTH, COLOR_FRAME_WIDTH);//SHORT_RANGE
 cv::Mat lavVideoProcessor::_inputMat;
 
 cv::Mat lavVideoProcessor::_inputMatColor;
-cv::Mat lavVideoProcessor::_tmpMat;
-cv::Mat lavVideoProcessor::_outputMat;
-cv::Mat lavVideoProcessor::_mOutputRGBA;
-cv::Mat lavVideoProcessor::_previousMat;
-cv::Mat lavVideoProcessor::_outputMatForDisplay;
+
 DataVideoProcessing lavVideoProcessor::transData;
 
 cv::Size size(320, 240);//SHORT_RANGE
@@ -38,8 +34,8 @@ int lavVideoProcessor::_close_video = 0;
 pthread_mutex_t lavVideoProcessor::mutex_data_out = PTHREAD_MUTEX_INITIALIZER;
 //pthread_t lavVideoProcessor::thread_video_processing;
 
-float lavVideoProcessor::ratioWidth = COLOR_FRAME_WIDTH / DEPTH_FRAME_WIDTH;
-float lavVideoProcessor::ratioHeight = COLOR_FRAME_HEIGHT / DEPTH_FRAME_HEIGHT;
+float lavVideoProcessor::ratioWidth = COLOR_FRAME_WIDTH / WIDTH;
+float lavVideoProcessor::ratioHeight = COLOR_FRAME_HEIGHT / HEIGHT;
 
 #ifdef OBJECT_DETECTION
 std::map<unsigned int, std::vector<ObjectBoundingBox>> lavVideoProcessor::_detOutput = {};
@@ -53,7 +49,6 @@ Sort lavVideoProcessor::_sort;
 
 #ifdef PATH_MARKER
 Stag lavVideoProcessor::stagDetector = Stag(15, 7, false);
-bool lavVideoProcessor::performStag;
 #endif
 
 
@@ -73,7 +68,6 @@ void lavVideoProcessor::init() {
 #else
 void lavVideoProcessor::init() {
     lavVideoProcessor::_capture = lavRealsenseCamera::getSingleton();
-    _mOutputRGBA = cv::Mat(FRAME_HEIGHT_SONIFIED, FRAME_WIDTH_SONIFIED, CV_8UC4);
     _newValue = false;
     _silence = true;
 }
@@ -85,7 +79,7 @@ void lavVideoProcessor::release() {
 
 }
 
-void lavVideoProcessor::startSound()
+void lavVideoProcessor::start()
 {
     pthread_mutex_lock(&mutex_data_out);
     _newValue = false;
@@ -93,7 +87,7 @@ void lavVideoProcessor::startSound()
     pthread_mutex_unlock(&mutex_data_out);
 }
 
-void lavVideoProcessor::stopSound()
+void lavVideoProcessor::stop()
 {
     pthread_mutex_lock(&mutex_data_out);
     _newValue = false;
@@ -137,19 +131,13 @@ void lavVideoProcessor::push_data(DataVideoProcessing data) {
 void lavVideoProcessor::acquireAndProcessFrame() {
 
     _inputMat = _capture->getNextFrame();
-    //frameDifferencing();
-    _outputMat.setTo(cv::Scalar(0));
-
+    cv::Mat _threshMat = cv::Mat(cv::Size(DEPTH_FRAME_WIDTH ,DEPTH_FRAME_HEIGHT), CV_8UC1);
     cv::Mat img = cv::Mat(sizeColor, CV_8UC1);
     _inputMatColor = _capture->getNextFrameColor();
     cv::cvtColor(_inputMatColor, img, cv::COLOR_BGR2GRAY);
     stagDetector.detectMarkers(img);
     Drawer::drawMarkers(&img, stagDetector.markers);
     DataVideoProcessing data;
-    //cv::GaussianBlur(_inputMat, _inputMat, cv::Size(3,3),1);
-
-
-
     for(auto const& mrk: stagDetector.markers)
     {
         int x = (int)(mrk.center.x / ratioWidth);
@@ -159,19 +147,17 @@ void lavVideoProcessor::acquireAndProcessFrame() {
         data.data_path.push_back({(unsigned int)mrk.center.x, (unsigned int)mrk.center.y, distance, angle,mrk.id});
     }
 
-    /*
-    int rangeSector = 320 / 5;
-    for(int i = 0; i < 320; i++)
+    for(int i = 0; i < _inputMat.rows * _inputMat.cols; i++)
     {
-        for(int j = 0; j < 160; j++)
-        {
-            if(imgResize.at<unsigned short>(j,i) < 5000 && imgResize.at<unsigned short>(j,i) > 400)
-            {
-                data.sector[i/rangeSector]++;
-            }
-        }
-    }*/
-
+        unsigned short value = _inputMat.at<unsigned short>(i);
+        if(value > 45 && value < 800)
+            _threshMat.at<unsigned char>(i) = 100;
+        else
+            _threshMat.at<unsigned char>(i) = 0;
+    }
+    cv::resize(_threshMat, data.sonify, cv::Size(FRAME_WIDTH_SONIFIED, FRAME_HEIGHT_SONIFIED));
+    //cv::imshow("fff", data.sonify);
+    //cv::waitKey(1);
     push_data(data);
 }
 

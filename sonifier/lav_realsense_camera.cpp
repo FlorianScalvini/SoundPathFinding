@@ -18,9 +18,9 @@ lavRealsenseCamera* lavRealsenseCamera::getSingleton()
 lavRealsenseCamera::lavRealsenseCamera()
 {
     lavLog::LAVLOG("Initialize LavRealsenseCamera ...");
-    depthCapture = cv::Mat(HEIGHT, WIDTH, CV_16UC1);
-    depthTransfert = cv::Mat(HEIGHT, WIDTH, CV_16UC1);
-    depthOutput = cv::Mat(HEIGHT, WIDTH, CV_16UC1);
+    depthCapture = cv::Mat(DEPTH_FRAME_WIDTH, DEPTH_FRAME_HEIGHT, CV_16UC1);
+    depthTransfert = cv::Mat(DEPTH_FRAME_WIDTH, DEPTH_FRAME_HEIGHT, CV_16UC1);
+    depthOutput = cv::Mat(DEPTH_FRAME_WIDTH, DEPTH_FRAME_HEIGHT, CV_16UC1);
 
     _aNewDepthFrameHasBeenAcquired = false;
     _aNewColorFrameHasBeenAcquired = false;
@@ -81,10 +81,8 @@ void lavRealsenseCamera::transfertNewFrame()
 void lavRealsenseCamera::configureDepthCamera()
 {
     filters.push_back(dec_filter);
-    filters.push_back(depth_to_disparity);
     filters.push_back(spat_filter);
     filters.push_back(temp_filter);
-    filters.push_back(disparity_to_depth);
 
 
     //check_for_camera();
@@ -148,9 +146,8 @@ void lavRealsenseCamera::realsense_acquisition(){
             depth = depth.apply_filter(filter);
         }
         _inputMat = frame_to_mat(depth); // RS2_FORMAT_Z16 -> Mat C1
-        cv::resize(_inputMat,_smallInputMat,size);
         _inputColorMat = frame_to_mat(color);
-        _smallInputMat.convertTo(depthCapture,CV_16UC1,1);
+        _inputMat.convertTo(depthCapture,CV_16UC1,1);
         _inputColorMat.convertTo(colorCapture, CV_8UC3,1);
         transfertNewFrame();
     }

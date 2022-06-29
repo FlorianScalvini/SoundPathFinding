@@ -42,7 +42,7 @@ void lavManager::nearSpecialTarget()
     else
     {
         currentNode = path->getCurrentNode()->label;
-        lavVocal::start(1);
+        lavVocal::start(4);
         state = NEAR_TARGET;
     }
 }
@@ -61,7 +61,7 @@ void lavManager::nearTarget()
         state = WAIT_DST;
     }
     else{
-        lavVocal::start(1);
+        lavVocal::start(2);
         state = SCAN_ENV;
         std::cout<<"State : Near target -> Scan env"<<std::endl;
     }
@@ -82,7 +82,7 @@ void lavManager::scanEnv() {
     {
         std::cout<<"State : In transit -> Near target"<<std::endl;
         path->showPath();
-        lavVideoProcessor::startSound();
+        lavVideoProcessor::start();
         state = IN_TRANSIT;
     }
 }
@@ -105,15 +105,14 @@ void lavManager::inTransit()
     outSonify.setTo(cv::Scalar(0));
     if(mrk != nullptr)
     {
-        if(mrk->distance < 1000 && mrk->distance > 100)
+        if(mrk->distance < 600 && mrk->distance > 100)
         {
             if(graph->getNode(mrk->label_i)->classe != 0)
             {
-                if(mrk->distance < 600)
-                {
+
                     std::cout<<"State : In transit -> Near special target"<<std::endl;
                     state = NEAR_TARGET_SPECIAL;
-                }
+
             }
             else{
                 std::cout<<"State : In transit -> Near target"<<std::endl;
@@ -132,7 +131,9 @@ void lavManager::inTransit()
     //cv::resize(outSonify, outSonify, cv::Size(FRAME_WIDTH_SONIFIED, FRAME_HEIGHT_SONIFIED), 0, 0, 0);
     //cv::imshow("sonify", outSonify);
     //cv::waitKey(1);
-    lavSonifier::sonify(&outSonify, angle);
+    //cv::imshow("fff", dataOut.sonify);
+   // cv::waitKey(1);
+    lavSonifier::sonify(&dataOut.sonify, angle);
 }
 
 void lavManager::searchFirstNode()
@@ -189,8 +190,8 @@ void lavManager::process()
 
 void lavManager::waitDst()
 {
-    lavVideoProcessor::stopSound();
-    lavVocal::start(0);
+    lavVideoProcessor::stop();
+    lavVocal::start(1);
     std::string char_dst;
     std::cout<<"Destination: "<<std::endl;
     std::getline(std::cin, char_dst);
@@ -202,7 +203,7 @@ void lavManager::waitDst()
         {
             path->showPath();
             state = IN_TRANSIT;
-            lavVideoProcessor::startSound();
+            lavVideoProcessor::start();
             std::cout<<"Start sonification vers cible "<< path->getCurrentNode()->label<< std::endl;
         }
     }
@@ -218,7 +219,7 @@ void lavManager::setDst(unsigned int dst) {
 
 void* lavManager::start_path_manager(void* args) {
     lavVocal::start(0);
-    lavVideoProcessor::startSound();
+    lavVideoProcessor::start();
     std::cout<<"Checking first node ..... : "<<std::endl;
     while (!close_thread) {
         lavManager::process();

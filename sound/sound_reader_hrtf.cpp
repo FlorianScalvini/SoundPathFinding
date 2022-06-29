@@ -15,26 +15,21 @@ SoundReaderHrtf::SoundReaderHrtf(char  * file, int size_sound_in_value) {
     int sizeData = soundWav.getSizeData();
     isInit = false;
     // The file %s is a monophonic sound
-    if(soundWav.getNbChannel() != 2 and sizeData % 512 == 0)
+    if(soundWav.getNbChannel() != 2)
     {
         printf("Is not a stereophonic sound\n");
         return;
     }
 
-    if(soundWav.getSizeHeader() % size_sound_in_value == 0)
+    if(soundWav.getSizeData() % size_sound_in_value != 0)
     {
         printf("The file size is not divisible by %i\n", size_sound_in_value);
         return;
     }
 
-    if(soundWav.getSizeHeader() % size_sound_in_value != 0)
-    {
-        printf("The file size is not divisible by %i\n", size_sound_in_value);
-        return;
-    }
 
     sizeSample = size_sound_in_value;
-    sampleNb = (int)(soundWav.getSizeHeader() / sizeSample);
+    sampleNb = (int)(sizeData / sizeSample);
     angle = 180 / (sampleNb - 1);
 
     bufferSound = new short [sizeData];

@@ -58,7 +58,6 @@ private:
 
     void configureDepthCamera();
     void check_for_camera();
-    bool noNewFrame();
     void start_realsense_acquisition();
     void realsense_acquisition();
     void transfertNewFrame();

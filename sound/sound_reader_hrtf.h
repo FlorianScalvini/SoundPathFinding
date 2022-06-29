@@ -13,9 +13,9 @@ public:
     short* getSpatializedSound(int idx);
 
 private:
-    int isInit;
+    bool isInit;
     int sampleNb;
-    int angle;
+    unsigned int angle;
     int sizeSample; // Taille d'un echantillion de la base de donnée
     short *bufferSound;
     short *emptyBuffer;
