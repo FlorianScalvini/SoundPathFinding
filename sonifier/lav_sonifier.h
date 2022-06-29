@@ -27,6 +27,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
+#include "../sound/sound_reader_hrtf.h"
 #include "lav_log.h"
 #include "lav_sound_database.h"
 #include "lav_audio_mixer.h"
@@ -60,12 +61,13 @@ class lavSonifier {
         static int* _startValueModulation;
         static int* _nbValueModulation;
 
-        //GRAYSCALE
+        // HRTF MARKER
+        static SoundReaderHrtf markerSound;
 
     public:
 
         static void computeCompressionFactor(int nbActivePixel);
-        static void sonify(cv::Mat* mAbsDiffFrame);
+        static void sonify(cv::Mat* mAbsDiffFrame, int angle);
         static void init();
 
 };

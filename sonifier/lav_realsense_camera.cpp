@@ -33,7 +33,7 @@ lavRealsenseCamera::lavRealsenseCamera()
 cv::Mat lavRealsenseCamera::getNextFrame()
 {
     while (!_aNewDepthFrameHasBeenAcquired) {
-        usleep(500);
+        usleep(250);
     }
     pthread_mutex_lock(&_mutexNewDepthFrame);
     depthTransfert.copyTo(depthOutput);
@@ -46,7 +46,7 @@ cv::Mat lavRealsenseCamera::getNextFrame()
 cv::Mat lavRealsenseCamera::getNextFrameColor()
 {
     while (!_aNewColorFrameHasBeenAcquired) {
-        usleep(500);
+        usleep(250);
     }
     pthread_mutex_lock(&_mutexNewColorFrame);
     colorTransfert.copyTo(colorOutput);

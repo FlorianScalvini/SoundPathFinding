@@ -26,6 +26,11 @@ int SoundWav::getNbChannel() {
     return this->header.num_channels;
 }
 
+int SoundWav::getNbbytes()
+{
+    return this->header.bits_per_sample / 8;
+}
+
 int SoundWav::readHeader()
 {
     FILE *_wav_file = fopen(filename, "rb");

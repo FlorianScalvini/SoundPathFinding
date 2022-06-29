@@ -44,9 +44,11 @@ struct PathOut{
     int label_i;
 };
 
+
 struct DataVideoProcessing
 {
     std::vector<PathOut> data_path;
+    cv::Mat sonify;
     //unsigned int sector[5] = {0,0,0,0,0};
 };
 
@@ -97,7 +99,6 @@ public:
         static bool _newValue;
         static bool performStag;
 	public:
-        static void frameDifferencing();
 	    static void init();
 	    static void release();
 	    static void startOrStopSound();

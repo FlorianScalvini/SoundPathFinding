@@ -7,15 +7,18 @@
 
 #include "sound_reader.h"
 
-class SoundReaderHrtf : public SoundReader{
+class SoundReaderHrtf {
 public:
-    SoundReaderHrtf();
-    void start(unsigned int idx);
-    int init(char* file, int sizechunks) override;
+    SoundReaderHrtf(char* file, int size_sound_in_value);
+    short* getSpatializedSound(int idx);
 
 private:
-    using SoundReader::start;
+    int isInit;
+    int sampleNb;
+    int angle;
     int sizeSample; // Taille d'un echantillion de la base de donnée
+    short *bufferSound;
+    short *emptyBuffer;
 };
 
 

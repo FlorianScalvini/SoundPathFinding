@@ -6,50 +6,58 @@
 #include <math.h>
 
 #define INCRE_ANGLE 5
-#define NUMBER_SAMPLE 180 / INCRE_ANGLE
+#define NUMBER_SAMPLE 37
 
-SoundReaderHrtf::SoundReaderHrtf() {
-    sizeSample = 0;
-}
+SoundReaderHrtf::SoundReaderHrtf(char  * file, int size_sound_in_value) {
 
-int SoundReaderHrtf::init(char* file, int sizechunks) {
-    if(isInit)
-    {
-        delete [] bufferSound;
-    }
-    sizeAudioChunkSample = 2*sizechunks ;
     SoundWav soundWav((char *) file);
     soundWav.readHeader();
-    sizeData = soundWav.getSizeData();
+    int sizeData = soundWav.getSizeData();
+    isInit = false;
     // The file %s is a monophonic sound
-    if(soundWav.getNbChannel() != 2)
+    if(soundWav.getNbChannel() != 2 and sizeData % 512 == 0)
     {
         printf("Is not a stereophonic sound\n");
-        return EXIT_FAILURE;
-    }
-
-    numberChunks = ceil((sizeData) / (sizeAudioChunkSample));
-    bufferSound = new short [numberChunks *  sizeAudioChunkSample];
-    memset(bufferSound, 0, numberChunks*sizeAudioChunkSample*sizeof(short));
-    soundWav.readData(bufferSound, sizeData);
-
-    sizeSample = sizeData / NUMBER_SAMPLE;
-    currentChunkPtr = nullptr;
-    lastChunkPtr = nullptr;
-    isInit = true;
-    return EXIT_SUCCESS;
-}
-
-void SoundReaderHrtf::start(unsigned int idx)
-{std::cout<<"START "<< idx <<std::endl;
-    if(idx > 180)
-    {
-        printf("%i is greater than 179\n");
         return;
     }
-    int offset = round((float) idx / (float) INCRE_ANGLE);
-    currentChunkPtr = bufferSound;
-    lastChunkPtr = bufferSound + sizeSample - sizeAudioChunkSample;
-    std::cout<<"END "<< idx <<std::endl;
+
+    if(soundWav.getSizeHeader() % size_sound_in_value == 0)
+    {
+        printf("The file size is not divisible by %i\n", size_sound_in_value);
+        return;
+    }
+
+    if(soundWav.getSizeHeader() % size_sound_in_value != 0)
+    {
+        printf("The file size is not divisible by %i\n", size_sound_in_value);
+        return;
+    }
+
+    sizeSample = size_sound_in_value;
+    sampleNb = (int)(soundWav.getSizeHeader() / sizeSample);
+    angle = 180 / (sampleNb - 1);
+
+    bufferSound = new short [sizeData];
+    soundWav.readData(bufferSound, sizeData);
+
+    emptyBuffer = new short [sizeSample];
+    memset(bufferSound, 0, sizeSample*sizeof(short));
+    isInit = true;
 }
+
+short* SoundReaderHrtf::getSpatializedSound(int idx)
+{
+    short * pointer_return;
+    if(!isInit && idx < 0 || idx > 180)
+    {
+        return emptyBuffer;
+    }
+    else
+    {
+        int offset = round((float) idx / (float) angle) * sizeSample;
+        pointer_return = bufferSound + offset;
+    }
+    return pointer_return;
+}
+
 

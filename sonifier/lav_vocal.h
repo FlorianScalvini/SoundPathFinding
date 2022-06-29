@@ -17,15 +17,12 @@ class lavVocal {
 public:
     static void init();
     static void* pull_buffer();
-    static void startSound(unsigned int indice);
-    static void startHRTF(unsigned int indice);
+    static void start(unsigned int indice);
     static bool isReading();
     static short* emptyBuffer;
 
-    static int idx;
     static pthread_mutex_t _sound_mutex;
     static std::vector<SoundReader> sounds;
-    static SoundReaderHrtf soundHrtf;
     static SoundReader* ptrSound;
 
 

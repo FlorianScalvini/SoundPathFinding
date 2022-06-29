@@ -117,7 +117,7 @@ DataVideoProcessing lavVideoProcessor::pull_data()
 {
     DataVideoProcessing dataOut;
     while(!_newValue)
-        usleep(500);
+        usleep(250);
     pthread_mutex_lock(&mutex_data_out);
     if(!_silence)
         dataOut = transData;
@@ -133,35 +133,6 @@ void lavVideoProcessor::push_data(DataVideoProcessing data) {
     pthread_mutex_unlock(&mutex_data_out);
 }
 
-
-void lavVideoProcessor::frameDifferencing()
-{
-    if (_firstFrame) {
-        _firstFrame = false;
-        _previousMat = _inputMat.clone();
-        _outputMat = _inputMat.clone();
-        _outputMatForDisplay = _inputMat.clone();
-    }
-    for(int j = 0; j < _inputMat.rows; j++)
-    {
-        for( int i = 0; i < _inputMat.cols; i++)
-        {
-            if(_inputMat.at<unsigned char>(j,i) == 255
-               || _previousMat.at<unsigned char>(j,i) == 255
-               || _inputMat.at<unsigned char>(j,i) == 0)
-                frameDifferencingMask.at<unsigned char>(j,i) = 0;
-            else
-                frameDifferencingMask.at<unsigned char>(j,i) = abs(_inputMat.at<unsigned char>(j,i) - _previousMat.at<unsigned char>(j,i));
-        }
-    }
-    _inputMat.copyTo(_previousMat);
-    cv::GaussianBlur(frameDifferencingMask, frameDifferencingMask, cv::Size(3,3), 2.0, 2.0);
-    cv::threshold(frameDifferencingMask, frameDifferencingMask, MIN_GRAYSCALE_SONIFICATION, 1, cv::THRESH_BINARY);
-    cv::threshold(_inputMat, depthProximityAlarmMask, 215, 1, cv::THRESH_BINARY);
-    finalMaskDepth = frameDifferencingMask+depthProximityAlarmMask;
-    cv::multiply(frameDifferencingMask, finalMaskDepth, _outputMat);
-    cv::resize(_outputMat, _outputMat, cv::Size(FRAME_WIDTH_SONIFIED, FRAME_HEIGHT_SONIFIED), 0, 0, 0);
-}
 
 void lavVideoProcessor::acquireAndProcessFrame() {
 
@@ -184,9 +155,7 @@ void lavVideoProcessor::acquireAndProcessFrame() {
         int x = (int)(mrk.center.x / ratioWidth);
         int y = (int)(mrk.center.y / ratioHeight);
         int angle = 90 + lavVideoCapture::pixelToAng(x, FOV_X, COLOR_FRAME_WIDTH);
-
         unsigned short distance = _inputMat.at<unsigned short>(y, x);
-        std::cout << angle << " " << x << " " << y << " "<< distance<< std::endl;
         data.data_path.push_back({(unsigned int)mrk.center.x, (unsigned int)mrk.center.y, distance, angle,mrk.id});
     }
 
@@ -202,6 +171,7 @@ void lavVideoProcessor::acquireAndProcessFrame() {
             }
         }
     }*/
+
     push_data(data);
 }
 

@@ -21,6 +21,8 @@ int* lavSonifier::_nbValueModulation = 0;
 #endif
 
 
+SoundReaderHrtf lavSonifier::markerSound("/home/ubuntu/CLionProjects/pathFinder/res/hrtf_beep.wav", SIZE_SOUND_IN_VALUE);
+
 void lavSonifier::computeCompressionFactor(int nbActivePixel) {
 
     float nbTotalKeptActivePixel = lavConstants::__maxNbSonifiedPixel*(1-lavConstants::__maxNbSonifiedPixel/((float)nbActivePixel+lavConstants::__maxNbSonifiedPixel));
@@ -49,7 +51,7 @@ void lavSonifier::computeCompressionFactor(int nbActivePixel) {
     }*/
 }
 
-void lavSonifier::sonify(cv::Mat* mAbsDiffFrame) {
+void lavSonifier::sonify(cv::Mat* mAbsDiffFrame, int angle) {
 
     //unrolled 01-01 01:27:44.440: I/lav_native(4458): sonify: 3567, 3080, 4877, 3018, 11683
     //normal   01-01 01:37:29.950: I/lav_native(4576): sonify: 3564, 3206, 5126, 1761, 12144
@@ -191,11 +193,11 @@ void lavSonifier::sonify(cv::Mat* mAbsDiffFrame) {
         }
 
         //lavConstants::__stopTimeChecking("sonify float to short");
-
-
-
     }
-
+    if(angle >= 0)
+    {
+        lavComputer::add_short_vector(_short_audio_output, _short_audio_output,markerSound.getSpatializedSound(angle), SIZE_SOUND_IN_VALUE);
+    }
     //lavLog::LAVLOG("lavSonifier::push_buffer");
     lavAudioMixer::push_buffer(_short_audio_output);
     //lavAudioMixer::push_buffer(_short_sound);
@@ -204,7 +206,6 @@ void lavSonifier::sonify(cv::Mat* mAbsDiffFrame) {
 
 
 void lavSonifier::init() {
-
     _sizeSimplificationChunk = 0;
     _nbKeptPixInSimplificationChunk =0;
 

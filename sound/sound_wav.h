@@ -58,6 +58,7 @@ public:
     int getSizeData();
     int getSizeHeader();
     int getNbChannel();
+    int getNbbytes();
     Wav_header* getHeader();
 
 private:

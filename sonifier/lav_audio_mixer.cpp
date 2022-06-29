@@ -74,7 +74,6 @@ void* lavAudioMixer::pull_buffer()
 {
 
 	void* pointer_result = NULL;
-
 	//lavConstants::__startTimeChecking();
 
 	pthread_mutex_lock(&_buffer_mutex);
@@ -88,6 +87,7 @@ void* lavAudioMixer::pull_buffer()
 		if (_pointer_curr_chunk == _position_last_chunk_pointer) {
 
 			lavComputer::add_short_vector(_short_beginning_audio_buffer, (short*) _sonification_buffer_reading, _short_last_chunk_audio_output_buffer, SIZE_AUDIO_CHUNK_IN_VALUE);
+
 			memcpy(_audio_output_buffer, _sonification_buffer_reading, SIZE_SOUND_IN_BYTE);
 
 			pthread_mutex_unlock(&_buffer_mutex);

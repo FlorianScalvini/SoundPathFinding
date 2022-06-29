@@ -6,11 +6,9 @@
 
 
 std::vector<SoundReader> lavVocal::sounds;
-SoundReaderHrtf lavVocal::soundHrtf;
 SoundReader* lavVocal::ptrSound = nullptr;
 pthread_mutex_t lavVocal::_sound_mutex = PTHREAD_MUTEX_INITIALIZER;
 short* lavVocal::emptyBuffer;
-int lavVocal::idx;
 void lavVocal::init()
 {
     sounds = std::vector<SoundReader>();
@@ -24,35 +22,21 @@ void lavVocal::init()
             { "/home/ubuntu/CLionProjects/pathFinder/res/person44100.wav" }
     };
 
-    soundHrtf.init("/home/ubuntu/CLionProjects/pathFinder/res/hrtf_re.wav", SIZE_AUDIO_CHUNK_IN_SAMPLE);
-
     for(int i = 0; i < soundFile.size(); i++)
     {
         SoundReader newSound = SoundReader();
         newSound.init(soundFile[i], SIZE_AUDIO_CHUNK_IN_SAMPLE);
         sounds.emplace_back(newSound);
     }
-
-    idx = -1;
     emptyBuffer = new short[SIZE_AUDIO_CHUNK_IN_VALUE];
     ptrSound = nullptr;
 };
 
-void lavVocal::startSound(unsigned int indice)
+void lavVocal::start(unsigned int indice)
 {
-    idx = indice;
     pthread_mutex_lock(&_sound_mutex);
     ptrSound = &sounds[indice];
     ptrSound->start();
-    pthread_mutex_unlock(&_sound_mutex);
-}
-
-void lavVocal::startHRTF(unsigned int indice)
-{
-
-    pthread_mutex_lock(&_sound_mutex);
-    ptrSound = &soundHrtf;
-    soundHrtf.start(indice);
     pthread_mutex_unlock(&_sound_mutex);
 }
 
