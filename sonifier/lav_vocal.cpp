@@ -14,12 +14,12 @@ void lavVocal::init()
     sounds = std::vector<SoundReader>();
     sounds.clear();
     std::vector<char* > soundFile =     {
-            { "/home/ubuntu/CLionProjects/pathFinder/res/analyse.wav" },
-            { "/home/ubuntu/CLionProjects/pathFinder/res/destination.wav" },
-            { "/home/ubuntu/CLionProjects/pathFinder/res/intermediaire.wav" },
-            { "/home/ubuntu/CLionProjects/pathFinder/res/end.wav" },
-            { "/home/ubuntu/CLionProjects/pathFinder/res/porte.wav" },
-            { "/home/ubuntu/CLionProjects/pathFinder/res/person44100.wav" }
+            { "/home/ubuntu/CLionProjects/SoundPathFinding/res/analyse.wav" },
+            { "/home/ubuntu/CLionProjects/SoundPathFinding/res/destination.wav" },
+            { "/home/ubuntu/CLionProjects/SoundPathFinding/res/intermediaire.wav" },
+            { "/home/ubuntu/CLionProjects/SoundPathFinding/res/end.wav" },
+            { "/home/ubuntu/CLionProjects/SoundPathFinding/res/porte.wav" },
+            { "/home/ubuntu/CLionProjects/SoundPathFinding/res/person44100.wav" }
     };
 
     for(int i = 0; i < soundFile.size(); i++)

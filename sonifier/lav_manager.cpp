@@ -18,7 +18,7 @@ bool lavManager::close_thread;
 void lavManager::init()
 {
     state = INIT_STATE;
-    graph = new Graph("/home/ubuntu/CLionProjects/pathFinder/path/graph.txt");
+    graph = new Graph("/home/ubuntu/CLionProjects/SoundPathFinding/path/graph.txt");
     graph->showGraph();
     path = new PathFinding(graph);
     currentNode = 0;
@@ -43,7 +43,9 @@ void lavManager::nearSpecialTarget()
     {
         currentNode = path->getCurrentNode()->label;
         lavVocal::start(4);
+        usleep(100000);
         state = NEAR_TARGET;
+        std::cout<<"State : Near target special -> Near target"<<std::endl;
     }
 }
 
@@ -80,7 +82,7 @@ void lavManager::scanEnv() {
     }
     if(mrk!= nullptr)
     {
-        std::cout<<"State : In transit -> Near target"<<std::endl;
+        std::cout<<"State : Near target -> In transit"<<std::endl;
         path->showPath();
         lavVideoProcessor::start();
         state = IN_TRANSIT;
@@ -105,19 +107,21 @@ void lavManager::inTransit()
     outSonify.setTo(cv::Scalar(0));
     if(mrk != nullptr)
     {
-        if(mrk->distance < 600 && mrk->distance > 100)
+
+        if(mrk->distance > 100 && mrk ->distance < 800)
         {
-            if(graph->getNode(mrk->label_i)->classe != 0)
+            int classLink = graph->getClasse(mrk->label_i, path->getNextNode());
+            if(mrk->distance < 600 && classLink > 0)
             {
-
-                    std::cout<<"State : In transit -> Near special target"<<std::endl;
-                    state = NEAR_TARGET_SPECIAL;
-
+                std::cout<<"State : In transit -> Near special target"<<std::endl;
+                state = NEAR_TARGET_SPECIAL;
             }
-            else{
+            else if(classLink == 0)
+            {
                 std::cout<<"State : In transit -> Near target"<<std::endl;
                 state = NEAR_TARGET;
             }
+            dataOut.sonify.setTo(cv::Scalar(0));
         }
         else
         {
@@ -132,7 +136,7 @@ void lavManager::inTransit()
     //cv::imshow("sonify", outSonify);
     //cv::waitKey(1);
     //cv::imshow("fff", dataOut.sonify);
-   // cv::waitKey(1);
+    //cv::waitKey(1);
     lavSonifier::sonify(&dataOut.sonify, angle);
 }
 

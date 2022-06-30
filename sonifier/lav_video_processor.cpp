@@ -131,7 +131,7 @@ void lavVideoProcessor::push_data(DataVideoProcessing data) {
 void lavVideoProcessor::acquireAndProcessFrame() {
 
     _inputMat = _capture->getNextFrame();
-    cv::Mat _threshMat = cv::Mat(cv::Size(DEPTH_FRAME_WIDTH ,DEPTH_FRAME_HEIGHT), CV_8UC1);
+    cv::Mat _threshMat = cv::Mat(cv::Size(_inputMat.cols ,_inputMat.cols), CV_8UC1);
     cv::Mat img = cv::Mat(sizeColor, CV_8UC1);
     _inputMatColor = _capture->getNextFrameColor();
     cv::cvtColor(_inputMatColor, img, cv::COLOR_BGR2GRAY);
@@ -140,25 +140,21 @@ void lavVideoProcessor::acquireAndProcessFrame() {
     DataVideoProcessing data;
     for(auto const& mrk: stagDetector.markers)
     {
-        int x = (int)(mrk.center.x / ratioWidth);
-        int y = (int)(mrk.center.y / ratioHeight);
         int angle = lavVideoCapture::pixelToAng((int)(mrk.center.x), FOV_X, COLOR_FRAME_WIDTH)  + (int)(FOV_X / 2);
-        std::cout<<angle<<std::endl;
-        unsigned short distance = _inputMat.at<unsigned short>(y, x);
+        unsigned short distance = _inputMat.at<unsigned short>(mrk.center.y, mrk.center.x);
         data.data_path.push_back({(unsigned int)mrk.center.x, (unsigned int)mrk.center.y, distance, angle ,mrk.id});
     }
 
-    for(int i = 0; i < _inputMat.rows * _inputMat.cols; i++)
+
+    for(int i = 0; i < _threshMat.rows * _threshMat.cols; i++)
     {
         unsigned short value = _inputMat.at<unsigned short>(i);
-        if(value > 45 && value < 800)
-            _threshMat.at<unsigned char>(i) = 100;
+        if(value > 45 && value < 700)
+            _threshMat.at<unsigned char>(i) = 150;
         else
             _threshMat.at<unsigned char>(i) = 0;
     }
     cv::resize(_threshMat, data.sonify, cv::Size(FRAME_WIDTH_SONIFIED, FRAME_HEIGHT_SONIFIED));
-    //cv::imshow("fff", data.sonify);
-    //cv::waitKey(1);
     push_data(data);
 }
 

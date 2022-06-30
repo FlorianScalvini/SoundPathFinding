@@ -5,7 +5,6 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <opencv2/cudaarithm.hpp>
 
 /// Detect Edges by Edge Drawing (ED). smoothingSigma must be >= 1.0
 EdgeMap *DetectEdgesByED(unsigned char *srcImg, int width, int height, GradientOperator op=PREWITT_OPERATOR, int GRADIENT_THRESH=20, int ANCHOR_THRESH=0, double smoothingSigma=1.0);

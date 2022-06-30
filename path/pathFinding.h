@@ -14,6 +14,7 @@ public:
     unsigned int newPath(unsigned int dst);
     Node* update();
     Node* getCurrentNode();
+    int getNextNode();
     bool setCurrentNode(unsigned int src);
     bool changeToClosestNode(unsigned int label);
     void showPath();
