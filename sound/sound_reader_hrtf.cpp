@@ -6,7 +6,6 @@
 #include <math.h>
 
 #define INCRE_ANGLE 5
-#define NUMBER_SAMPLE 37
 
 SoundReaderHrtf::SoundReaderHrtf(char  * file, int size_sound_in_value) {
 
@@ -30,26 +29,26 @@ SoundReaderHrtf::SoundReaderHrtf(char  * file, int size_sound_in_value) {
 
     sizeSample = size_sound_in_value;
     sampleNb = (int)(sizeData / sizeSample);
-    angle = 180 / (sampleNb - 1);
 
     bufferSound = new short [sizeData];
     soundWav.readData(bufferSound, sizeData);
 
     emptyBuffer = new short [sizeSample];
-    memset(bufferSound, 0, sizeSample*sizeof(short));
+    memset(emptyBuffer, 0, sizeSample*sizeof(short));
     isInit = true;
 }
 
 short* SoundReaderHrtf::getSpatializedSound(int idx)
 {
     short * pointer_return;
-    if(!isInit && idx < 0 || idx > 180)
+    if(!isInit && idx < 0 || idx > sampleNb*INCRE_ANGLE)
     {
         return emptyBuffer;
     }
     else
     {
-        int offset = round((float) idx / (float) angle) * sizeSample;
+        int offset = round((float) idx / (float) INCRE_ANGLE) * sizeSample;
+        std::cout<<idx<<" "<<round((float) idx / (float) INCRE_ANGLE)<<std::endl;
         pointer_return = bufferSound + offset;
     }
     return pointer_return;

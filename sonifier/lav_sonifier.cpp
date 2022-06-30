@@ -21,7 +21,7 @@ int* lavSonifier::_nbValueModulation = 0;
 #endif
 
 
-SoundReaderHrtf lavSonifier::markerSound("/home/ubuntu/CLionProjects/pathFinder/res/hrtf_beep.wav", SIZE_SOUND_IN_VALUE);
+SoundReaderHrtf lavSonifier::markerSound("/home/ubuntu/CLionProjects/pathFinder/res/hrtf_beep_10.wav", SIZE_SOUND_IN_VALUE);
 
 void lavSonifier::computeCompressionFactor(int nbActivePixel) {
 
