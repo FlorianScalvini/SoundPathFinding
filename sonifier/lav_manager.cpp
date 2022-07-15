@@ -43,7 +43,7 @@ void lavManager::nearSpecialTarget()
     {
         currentNode = path->getCurrentNode()->label;
         lavVocal::start(4);
-        usleep(100000);
+        usleep(1000);
         state = NEAR_TARGET;
         std::cout<<"State : Near target special -> Near target"<<std::endl;
     }
@@ -102,13 +102,9 @@ void lavManager::inTransit()
             break;
         }
     }
-
-    cv::Mat outSonify = cv::Mat(cv::Size(COLOR_FRAME_WIDTH, COLOR_FRAME_HEIGHT), CV_8UC1);
-    outSonify.setTo(cv::Scalar(0));
     if(mrk != nullptr)
     {
-
-        if(mrk->distance > 100 && mrk ->distance < 800)
+        if(mrk->distance > 100 && mrk ->distance < 700)
         {
             int classLink = graph->getClasse(mrk->label_i, path->getNextNode());
             if(mrk->distance < 600 && classLink > 0)
@@ -212,7 +208,7 @@ void lavManager::waitDst()
         }
     }
     else
-        usleep(100000);
+        usleep(1000);
 }
 
 void lavManager::setDst(unsigned int dst) {

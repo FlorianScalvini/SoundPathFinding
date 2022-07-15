@@ -68,9 +68,9 @@ Node* Graph::getNode(unsigned int indice)
 int Graph::getClasse(unsigned int src, unsigned int dst)
 {
     if(this->nodes.find(src) == this->nodes.end())
-        return -1;
+        return 0;
     if(this->nodes[src]->classes.find(dst) == this->nodes[src]->classes.end())
-        return -1;
+        return 0;
     return nodes[src]->classes[dst];
 }
 
