@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(Stag)
+project(PathFinder)
 
 IF(NOT CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE Release)
