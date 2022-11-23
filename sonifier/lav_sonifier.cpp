@@ -1,6 +1,6 @@
 #include "lav_sonifier.h"
 
-
+#include <fstream>
 short* lavSonifier::_short_sound = 0;
 short* lavSonifier::_short_silence = 0;
 
@@ -21,7 +21,7 @@ int* lavSonifier::_nbValueModulation = 0;
 #endif
 
 
-SoundReaderHrtf lavSonifier::markerSound("/home/ubuntu/CLionProjects/pathFinder/res/hrtf_beep_10.wav", SIZE_SOUND_IN_VALUE);
+SoundReaderHrtf lavSonifier::markerSound("/home/ubuntu/CLionProjects/SoundPathFinding/res/hrtf_beep_10.wav", SIZE_SOUND_IN_VALUE);
 
 void lavSonifier::computeCompressionFactor(int nbActivePixel) {
 
@@ -64,38 +64,36 @@ void lavSonifier::sonify(cv::Mat* mAbsDiffFrame, int angle) {
 
     //LOGI("nbActivePixel = %d\n", nbActivePixel);
 
-    memset(_float_audio_output, 0, SIZE_SOUND_IN_VALUE*sizeof(float));
-    memset(_short_audio_output, 0, SIZE_SOUND_IN_VALUE*sizeof(short));
+    memset(_float_audio_output, 0, SIZE_SOUND_IN_VALUE * sizeof(float));
+    memset(_short_audio_output, 0, SIZE_SOUND_IN_VALUE * sizeof(short));
 
 #ifdef GRAYSCALE_SONIFICATION
-    memset(_grayscale_pixelCounter, 0, 256*sizeof(int));
-    for (int idGrayscale =0; idGrayscale<256; ++idGrayscale) {
-        memset(_float_grayscale_result[idGrayscale], 0, SIZE_SOUND_IN_VALUE*sizeof(float));
+    memset(_grayscale_pixelCounter, 0, 256 * sizeof(int));
+    for (int idGrayscale = 0; idGrayscale < 256; ++idGrayscale) {
+        memset(_float_grayscale_result[idGrayscale], 0, SIZE_SOUND_IN_VALUE * sizeof(float));
     }
 #endif
 
 
-    if (nbActivePixel>0) {
+    if (nbActivePixel > 0) {
 
         computeCompressionFactor(nbActivePixel);
 
         int cptPixInCompression = 0;
         int nbSonifiedPix = 0;
-        float* sound = NULL;
+        float *sound = NULL;
 
-        unsigned int ID_y,ID_x, ID_t;
-        uchar* p;
+        unsigned int ID_y, ID_x, ID_t;
+        uchar *p;
 
         //lavConstants::__startTimeChecking();
 
-        for( ID_y = 0; ID_y < FRAME_HEIGHT_SONIFIED; ++ID_y)
-        {
+        for (ID_y = 0; ID_y < FRAME_HEIGHT_SONIFIED; ++ID_y) {
             p = inputMat.ptr<uchar>(ID_y);
-            for ( ID_x = 0; ID_x < FRAME_WIDTH_SONIFIED; ++ID_x)
-            {
+            for (ID_x = 0; ID_x < FRAME_WIDTH_SONIFIED; ++ID_x) {
                 grayscale = p[ID_x];
 
-                if (grayscale >0)  {
+                if (grayscale > 0) {
 
 
                     //if compression
@@ -108,10 +106,11 @@ void lavSonifier::sonify(cv::Mat* mAbsDiffFrame, int angle) {
                         int idStartValue = _startValueModulation[grayscale];
                         int nbValue = _nbValueModulation[grayscale];
 
-                        lavComputer::add_float_vector(&_float_grayscale_result[grayscale][idStartValue], &sound[idStartValue], nbValue);
+                        lavComputer::add_float_vector(&_float_grayscale_result[grayscale][idStartValue],
+                                                      &sound[idStartValue], nbValue);
 
 
-                        _grayscale_pixelCounter[grayscale]+=1;
+                        _grayscale_pixelCounter[grayscale] += 1;
 
                         //lavLog::LAVLOG("grayscale", grayscale);
                         //lavLog::LAVLOG("counter", _grayscale_pixelCounter[grayscale]);
@@ -119,7 +118,7 @@ void lavSonifier::sonify(cv::Mat* mAbsDiffFrame, int angle) {
                         lavComputer::add_float_vector(_float_audio_output, sound, SIZE_SOUND_IN_VALUE);
 #endif
 
-                        nbSonifiedPix +=1;
+                        nbSonifiedPix += 1;
                     }
                     cptPixInCompression += 1;
 
@@ -159,10 +158,10 @@ void lavSonifier::sonify(cv::Mat* mAbsDiffFrame, int angle) {
         }
 
 #ifdef GRAYSCALE_SONIFICATION
-        int startValueModulation =0;
-        int nbValueModulation =0;
+        int startValueModulation = 0;
+        int nbValueModulation = 0;
 
-        for (int idGrayscale =0; idGrayscale<256; ++idGrayscale) {
+        for (int idGrayscale = 0; idGrayscale < 256; ++idGrayscale) {
             //lavLog::LAVLOG("grayscale", idGrayscale);
             //lavLog::LAVLOG("counter", _grayscale_pixelCounter[idGrayscale]);
 
@@ -170,9 +169,14 @@ void lavSonifier::sonify(cv::Mat* mAbsDiffFrame, int angle) {
             nbValueModulation = _nbValueModulation[idGrayscale];
 
 
-            if (_grayscale_pixelCounter[idGrayscale]>1) {
-                lavComputer::mul_float_vector(&_float_grayscale_result[idGrayscale][startValueModulation], &_float_grayscale_result[idGrayscale][startValueModulation], &_float_grayscale_modulation[idGrayscale][startValueModulation], nbValueModulation);
-                lavComputer::add_float_vector(&_float_audio_output[startValueModulation], &_float_grayscale_result[idGrayscale][startValueModulation], nbValueModulation);
+            if (_grayscale_pixelCounter[idGrayscale] > 1) {
+                lavComputer::mul_float_vector(&_float_grayscale_result[idGrayscale][startValueModulation],
+                                              &_float_grayscale_result[idGrayscale][startValueModulation],
+                                              &_float_grayscale_modulation[idGrayscale][startValueModulation],
+                                              nbValueModulation);
+                lavComputer::add_float_vector(&_float_audio_output[startValueModulation],
+                                              &_float_grayscale_result[idGrayscale][startValueModulation],
+                                              nbValueModulation);
             }
         }
 #endif
@@ -185,7 +189,7 @@ void lavSonifier::sonify(cv::Mat* mAbsDiffFrame, int angle) {
 
         //lavConstants::__startTimeChecking(); //negligable
 
-        for (ID_t =0; ID_t<SIZE_SOUND_IN_VALUE; ++ID_t) {
+        for (ID_t = 0; ID_t < SIZE_SOUND_IN_VALUE; ++ID_t) {
             _short_audio_output[ID_t] = (short) _float_audio_output[ID_t];
 
             //to test
@@ -194,9 +198,33 @@ void lavSonifier::sonify(cv::Mat* mAbsDiffFrame, int angle) {
 
         //lavConstants::__stopTimeChecking("sonify float to short");
     }
+
+
+    std::ofstream myfile ("/home/ubuntu/CLionProjects/SoundPathFinding/obstacle.txt");
+    if (myfile.is_open())
+    {
+        for(int count = 0; count < 2048; count ++){
+            myfile << _short_audio_output[count] << ";" ;
+        }
+        myfile.close();
+    }
+    else std::cout << "Unable to open file";
+
+
     if(angle >= 0)
     {
-        lavComputer::add_short_vector(_short_audio_output, _short_audio_output,markerSound.getSpatializedSound(angle), SIZE_SOUND_IN_VALUE);
+        short* a = markerSound.getSpatializedSound(angle);
+        lavComputer::add_short_vector(_short_audio_output, _short_audio_output, markerSound.getSpatializedSound(angle), SIZE_SOUND_IN_VALUE);
+        std::ofstream myfile2 ("/home/ubuntu/CLionProjects/SoundPathFinding/nav.txt");
+        if (myfile2.is_open())
+        {
+            for(int count = 0; count < 2048; count ++){
+                myfile2 << a[count] << ";" ;
+            }
+            myfile2.close();
+        }
+        else std::cout << "Unable to open file";
+
     }
     //lavLog::LAVLOG("lavSonifier::push_buffer");
     lavAudioMixer::push_buffer(_short_audio_output);

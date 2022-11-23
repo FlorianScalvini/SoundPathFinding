@@ -80,7 +80,7 @@ void lavRealsenseCamera::transfertNewFrame()
 
 void lavRealsenseCamera::configureDepthCamera()
 {
-    filters.push_back(dec_filter);
+    //filters.push_back(dec_filter);
     filters.push_back(spat_filter);
     filters.push_back(temp_filter);
 

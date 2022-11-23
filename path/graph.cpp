@@ -23,8 +23,8 @@ Graph::Graph(const char * path)
 {
     std::ifstream infile(path);
     std::string line;
-    std::vector<std::pair<unsigned int, std::vector<int>>> link;
-
+    std::vector<std::pair<unsigned int, std::vector<int>>> links;
+    std::vector<std::pair<unsigned int, std::vector<int>>> classes;
     std::vector<Node> graph;
     if (!infile.is_open()) {
         std::cerr << "Could not open the file - '" << path << "'" << std::endl;
@@ -39,16 +39,16 @@ Graph::Graph(const char * path)
         id = extractValue(&ptrLine, lastChr);
         this->nodes.insert(std::pair<int, Node*>(id, new Node(id)));
         ptrLine++;
-        link.emplace_back(id, extractListValue(&ptrLine, ',', lastChr));
+        links.emplace_back(id, extractListValue(&ptrLine, ',', lastChr));
         ptrLine++;
-        this->nodes[id]->classe = extractValue(&ptrLine, lastChr);
+        classes.emplace_back(id, extractListValue(&ptrLine, ',', lastChr));
     }
-    this->numNode = link.size();
+    this->numNode = links.size();
     for(unsigned int i = 0; i < numNode; i++)
     {
-        for(unsigned int j=0; j < link[i].second.size(); j++)
+        for(unsigned int j=0; j < links[i].second.size(); j++)
         {
-            addLink(link[i].first, link[i].second[j]);
+            addLink(links[i].first, links[i].second[j], classes[i].second[j]);
         }
     }
 }
@@ -65,13 +65,24 @@ Node* Graph::getNode(unsigned int indice)
         return nullptr;
 }
 
-void Graph::addLink(unsigned int src, int dst)
+int Graph::getClasse(unsigned int src, unsigned int dst)
 {
+    if(this->nodes.find(src) == this->nodes.end())
+        return 0;
+    if(this->nodes[src]->classes.find(dst) == this->nodes[src]->classes.end())
+        return 0;
+    return nodes[src]->classes[dst];
+}
+
+void Graph::addLink(unsigned int src, unsigned int dst, unsigned int classe)
+{
+
     Node* srcNode = this->getNode(src);
     Node* dstNode = this->getNode(dst);
     if(srcNode != nullptr && dstNode != nullptr )
     {
         this->nodes[src]->links.insert(dstNode);
+        this->nodes[src]->classes.insert({dst, classe});
     }
     else
     {

@@ -48,7 +48,7 @@ short* SoundReaderHrtf::getSpatializedSound(int idx)
     else
     {
         int offset = round((float) idx / (float) INCRE_ANGLE) * sizeSample;
-        std::cout<<idx<<" "<<round((float) idx / (float) INCRE_ANGLE)<<std::endl;
+        //std::cout<<idx<<" "<<round((float) idx / (float) INCRE_ANGLE)<<std::endl;
         pointer_return = bufferSound + offset;
     }
     return pointer_return;

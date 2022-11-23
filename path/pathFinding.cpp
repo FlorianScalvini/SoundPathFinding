@@ -126,3 +126,11 @@ void PathFinding::showPath()
             std::cout<<std::endl;
     }
 }
+int PathFinding::getNextNode() {
+    if(currPosition < markerList.size()-1)
+    {
+        return markerList[currPosition + 1];
+    }
+    else
+        return -1;
+}

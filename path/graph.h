@@ -12,16 +12,18 @@
 #include <map>
 #include <set>
 #include <vector>
+#include <utility>
+
 
 struct Node
 {
+
     unsigned int label;
-    int classe;
     std::set<Node*> links;
-    explicit Node(unsigned int label, int classe = 0)
+    std::map<unsigned int, unsigned int> classes;
+    explicit Node(unsigned int label)
     {
         this->label = label;
-        this->classe = classe;
     }
 };
 
@@ -31,7 +33,8 @@ public:
     explicit Graph(const char * path);
     ~Graph();
     Node* getNode(unsigned int indice);
-    void addLink(unsigned int src, int dst);
+    void addLink(unsigned int src, unsigned int dst, unsigned int classe = 0);
+    int getClasse(unsigned int src, unsigned int dst);
     void showGraph();
 
 private:

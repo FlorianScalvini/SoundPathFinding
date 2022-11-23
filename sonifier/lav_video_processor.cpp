@@ -130,35 +130,54 @@ void lavVideoProcessor::push_data(DataVideoProcessing data) {
 
 void lavVideoProcessor::acquireAndProcessFrame() {
 
+
     _inputMat = _capture->getNextFrame();
-    cv::Mat _threshMat = cv::Mat(cv::Size(DEPTH_FRAME_WIDTH ,DEPTH_FRAME_HEIGHT), CV_8UC1);
     cv::Mat img = cv::Mat(sizeColor, CV_8UC1);
     _inputMatColor = _capture->getNextFrameColor();
+    //Drawer draw;
     cv::cvtColor(_inputMatColor, img, cv::COLOR_BGR2GRAY);
     stagDetector.detectMarkers(img);
-    Drawer::drawMarkers(&img, stagDetector.markers);
+
+    //cv::imwrite("/home/ubuntu/CLionProjects/SoundPathFinding/frame_color.png", _inputMatColor);
+    //draw.drawMarkers(&_inputMatColor, stagDetector.markers);
+    //cv::imwrite("/home/ubuntu/CLionProjects/SoundPathFinding/img_marker.png", _inputMatColor);
+    cv::Mat _threshMat = cv::Mat(cv::Size(_inputMat.cols ,_inputMat.cols), CV_16UC1);
+    cv::Mat _threshMatH = cv::Mat(cv::Size(_inputMat.cols ,_inputMat.cols), CV_16UC1);;
+    cv::Mat _threshMatL= cv::Mat(cv::Size(_inputMat.cols ,_inputMat.cols), CV_16UC1);
+    cv::threshold(_inputMat, _threshMatH, 100, 1, cv::THRESH_BINARY);
+
+    cv::threshold(_inputMat, _threshMatL, 1300, 1, cv::THRESH_BINARY_INV);
+    _threshMat = (_threshMatH & _threshMatL) * 255;
+    _threshMat.convertTo(_threshMat, CV_8UC1, 1);
+
+    //Drawer::drawMarkers(&img, stagDetector.markers);
     DataVideoProcessing data;
+
+
+
+
     for(auto const& mrk: stagDetector.markers)
     {
-        int x = (int)(mrk.center.x / ratioWidth);
-        int y = (int)(mrk.center.y / ratioHeight);
         int angle = lavVideoCapture::pixelToAng((int)(mrk.center.x), FOV_X, COLOR_FRAME_WIDTH)  + (int)(FOV_X / 2);
-        std::cout<<angle<<std::endl;
-        unsigned short distance = _inputMat.at<unsigned short>(y, x);
+        unsigned short distance = _inputMat.at<unsigned short>(mrk.center.y, mrk.center.x);
         data.data_path.push_back({(unsigned int)mrk.center.x, (unsigned int)mrk.center.y, distance, angle ,mrk.id});
+        //std::cout<<distance<< " "<< mrk.id << std::endl;
     }
-
-    for(int i = 0; i < _inputMat.rows * _inputMat.cols; i++)
+    for(int i = 0; i < _inputMat.cols * _inputMat.rows; i++)
     {
-        unsigned short value = _inputMat.at<unsigned short>(i);
-        if(value > 45 && value < 800)
-            _threshMat.at<unsigned char>(i) = 100;
+        if(_inputMat.at<unsigned short>(i) < 100 || _inputMat.at<unsigned short>(i) > 10000)
+        {
+            _inputMat.at<unsigned short>(i) = 0;
+        }
         else
-            _threshMat.at<unsigned char>(i) = 0;
+           _inputMat.at<unsigned short>(i) = _inputMat.at<unsigned short>(i) * 5;
     }
-    cv::resize(_threshMat, data.sonify, cv::Size(FRAME_WIDTH_SONIFIED, FRAME_HEIGHT_SONIFIED));
-    //cv::imshow("fff", data.sonify);
+    //cv::imwrite("/home/ubuntu/CLionProjects/SoundPathFinding/threshed.png", _threshMat);
+    //cv::imwrite("/home/ubuntu/CLionProjects/SoundPathFinding/depthmap.png", _inputMat);
+
+    //cv::imshow("ddd", _threshMat);
     //cv::waitKey(1);
+    cv::resize(_threshMat, data.sonify, cv::Size(FRAME_WIDTH_SONIFIED, FRAME_HEIGHT_SONIFIED));
     push_data(data);
 }
 
